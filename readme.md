@@ -6,6 +6,9 @@ Highly configurable bash script which sends nice html email with results of part
 - Processess with highest load
 - Available updates
 
+## Email example
+![Email example](email_screenshot.png "Email example")
+
 ## Configuration
 
 - See file `base_config.sh`. It contains all possible configuration variables with their default values and comments.
