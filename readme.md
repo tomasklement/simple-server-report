@@ -7,7 +7,7 @@ Highly configurable bash script which sends nice html email with results of part
 - Available updates
 
 ## Email example
-![Email example](email_screenshot.png "Email example")
+<img src="email_screenshot.png" width="400" height="600" alt="Email screenshot" title="Email screenshot">
 
 ## Configuration
 
