@@ -1,13 +1,25 @@
 # Simple server report script
 
-Highly configurable bash script which sends nice html email with results of particular commands. Script is pluginable, so you can easily add your own sub-report. By default one report email contains:
+Highly configurable bash script which generates (sends) nice html email with results of particular commands. Script is pluginable, so you can easily add your own sub-report. By default one report email contains:
 - Backups status (just count of differences between two folders)
 - Disks space
 - Processess with highest load
 - Available updates
 
+## Usage
+```bash
+# Generates html email and sends it
+./send_report.sh -o=sendmail
+
+# Prints html report to stdout
+./send_report.sh -o=html
+
+# Prints eml message with html report to stdout
+./send_report.sh -o=eml
+```
+
 ## Email example
-<img src="email_screenshot.png" width="400" height="600" alt="Email screenshot" title="Email screenshot">
+<img src="images/email_screenshot.png" width="400" height="600" alt="Email screenshot" title="Email screenshot">
 
 ## Configuration
 
@@ -19,7 +31,7 @@ Highly configurable bash script which sends nice html email with results of part
 ### Example of config.sh
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
 
 EMAIL_RECIPIENT="john.doe@gmail.com"
 EMAIL_RECIPIENT_NAME="John Doe"
@@ -29,11 +41,7 @@ EMAIL_SENDER_NAME="My server"
 
 ### Configuration of particular plugin
 
-Some plugins have their own specific configuration. It should be at the top of particular plugin script. Plugins are located in `./report_scripts` folder. These settings can also be overwritten by `config.sh` in the root folder.
-
-## Execution
-
-    $ ./send_report.sh
+Some plugins have their own specific configuration. It should be located at the top of particular plugin script. Plugins are located in `./report_scripts` folder. These settings can also be overwritten by `config.sh` in the root folder.
 
 ## Writing own plugin
 
@@ -41,9 +49,9 @@ Some plugins have their own specific configuration. It should be at the top of p
 
 Lets name our plugin **"example"**. Create script `./report_scripts/example.sh` with following content:
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
 
-# All the logic should be in this function to avoid possible conflicts in variable names with main script. Also it must have same name as the plugin.
+# All the logic should be in this function to avoid possible conflicts in variable names with main script. Also the function must have the same name as the plugin.
 function example {
     local dfReport
 
@@ -51,13 +59,10 @@ function example {
 
     echo "${dfReport}"
 }
-
-heading="Example" # Will be used as a heading of this report/plugin
-disableHeader=false # This will make first line of report highlighted (makes sense for tabular reports where first row is a header row)
 ```
 
-Add the name of the script (without the extension) to the configuration variable `REPORTS` in your  `config.sh`
+Add the name of the script (without the extension) to the configuration variable `REPORTS` in your `config.sh`
 ```bash
 REPORTS=( "updates" "disks" "processes" "backups" "example" )
 ```
-Well done. Your report is now part of the report email. 
+Well done. Your report is now part of the report email.

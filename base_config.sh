@@ -1,7 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # !!! IMPORTANT !!!
-# To create your own configuration, create "config.sh" and define some of following configuration vartiables - they will override this default configuration. Do not change this file - you will prevent loosing your when you update this script
+# To create your own configuration, create "config.sh" and define any of following configuration variables - they will override this default configuration.
+# Do not change this file - you will prevent loosing your configuration when updating this script
 
 EMAIL_SUBJECT="Server Report" # Email subject (optional)
 EMAIL_RECIPIENT="" # Recipient of the report (required), i.e.: "john.doe@gmail.com"
@@ -14,53 +15,27 @@ EMAIL_REPLY_TO_NAME="" # (optional) Reply-to name, i.e.: "John Doe"
 REPORT_SCRIPTS_FOLDER="report_scripts" # Folder with sub-reports scripts
 REPORTS=( "updates" "disks" "processes" "backups" ) # Reports to be used (corresponds with names of scripts in folder configured by REPORT_SCRIPTS_FOLDER)
 
-REPORT_LETTER_WIDTH=8 # Real width of one letter in reports in px (used to set css width of the report)
-
 CUSTOM_CONFIG_FILE_NAME="config.sh" # Name of custom config file
+TEMPLATES_FOLDER="templates/" # Folder where html templates are stored with slash at the end
 
 # Template used for mail body, parameters: headers, content
-read -d '' MAIL_BODY_TEMPLATE << _EOF_
-Content-Type: text/html; charset=UTF-8
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-%s
-%s
-_EOF_
+MAIL_BODY_TEMPLATE=$( cat "${TEMPLATES_FOLDER}email.eml" )
 
 # Template used for html mail body, parameters: main header, content
-read -d '' MAIN_TEMPLATE << _EOF_
-<!doctype html>
-<html>
-<head>
-    <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
-    <style>
-        body {
-            font-family: Helvetica, Arial, sans-serif;
-        }
-    </style>
-</head>
-<body>
-    <h1>%s</h1>
-    %s
-</body>
+MAIN_TEMPLATE=$( cat "${TEMPLATES_FOLDER}main.html" )
 
-</html>
-_EOF_
+# Template for particular report header, parameters: text
+REPORT_HEADER_TEMPLATE=$( cat "${TEMPLATES_FOLDER}report_header.html" )
 
-# Partial html template for one report, parameters: heading, width (px), header, content
-read -d '' REPORT_TEMPLATE << _EOF_
-<h2>%s</h2>
-<div style="width: %spx; font-size: 12px; border: 1px solid rgb(221, 221, 221); background-color: rgb(238, 238, 238);">
-    %s
-    <div style="padding: 10px;">
-        <pre style="margin: 0;">%s</pre>
-	</div>
-</div>
-_EOF_
+# Simple report template with nothing special - just styled text container, parameters: text
+SIMPLE_REPORT_TEMPLATE=$( cat "${TEMPLATES_FOLDER}simple_report.html" )
 
-# Partial html template for report header parameters: header content
-read -d '' REPORT_TEMPLATE_HEADER << _EOF_
-<div style="padding: 10px; background-color: rgb(221, 221, 221); font-weight: bold;">
-    <pre style="margin: 0;">%s</pre>
-</div>
-_EOF_
+# Template for report with preformatted text, parameters: width (px), text
+PREFORMATTED_REPORT_LETTER_WIDTH=8 # Real width of one letter in preformatted reports in px
+PREFORMATTED_REPORT_TEMPLATE=$( cat "${TEMPLATES_FOLDER}preformatted_report.html" )
+
+# Template for tabular report, parameters: table content
+TABULAR_REPORT_TEMPLATE=$( cat "${TEMPLATES_FOLDER}tabular_report.html" )
+
+# Template for error in report, parameters: report name
+REPORT_ERROR_TEMPLATE=$( cat "${TEMPLATES_FOLDER}report_error.html" )

@@ -1,51 +1,97 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 DISKS_FILTER_REGEXP="dev" # Filter displayed disks by this regular expression (empty string = no filtering)
+DISKS_HEADER_TEMPLATE="${REPORT_HEADER_TEMPLATE}" # Report header template (inherited)
+DISKS_TABLE_TEMPLATE="${TABULAR_REPORT_TEMPLATE}" # Report table template (inherited)
 
-# Prints out available/occupied space on disks
-# --------------------------------------------
-function disks {
-    local changesCount
-    local dfReport
-    local dfReportLines
-    local ifsBackup
-    local dfLinesCount
-    local reportContent=""
-    local nl=$'\n'
-    local resultDisksCount=0
+# Report data row content template
+read -d '' DISKS_TABLE_ROW_DATA_TEMPLATE << _EOF_
+<tr>
+    <td style="text-align: left">%s</td>
+    <td style="text-align: right">%s</td>
+    <td style="text-align: right">%s</td>
+    <td style="text-align: right">%s</td>
+</tr>
+_EOF_
 
-    # Check if df is in version which supports --output param
-    if df --output &> /dev/null ; then
-        dfReport=$( df -h --output=source,used,avail,pcent )
-    else
-        dfReport=$( df -h )
-    fi
+# Report header row content template
+read -d '' DISKS_TABLE_ROW_HEADER_TEMPLATE << _EOF_
+<tr>
+    <th style="text-align: left">%s</th>
+    <th style="text-align: right">%s</th>
+    <th style="text-align: right">%s</th>
+    <th style="text-align: right">%s</th>
+</tr>
+_EOF_
 
-    ifsBackup=$IFS # save current IFS
-    IFS=$'\n'
-    dfReportLines=( $dfReport )
-    IFS=$ifsBackup # restore IFS
+# Removes lines with disk stats which doesn't match given regular expression
+# Globals:
+#   None
+# Arguments:
+#   Result of df command
+#   Regular expression to filter disks
+# Returns:
+#   Result of df command with filtered disks
+function filterDisksByRegExp {
+    local commandResultLines
+    local i
+    local filteredLines=()
+    local IFS=$'\n'
 
-    for i in "${!dfReportLines[@]}"
+    commandResultLines=( $1 )
+
+    for i in "${!commandResultLines[@]}"
     do
         :
-        # Print header line
+        # Save header line
         if [ $i -eq 0 ]; then
-            reportContent="${reportContent}${dfReportLines[$i]}${nl}"
+            filteredLines+=("${commandResultLines[$i]}")
+            continue
         fi
 
-        # Print lines which matches regExp
-        if [[ -z "${DISKS_FILTER_REGEXP}" || "${dfReportLines[$i]}" =~ $DISKS_FILTER_REGEXP ]]; then
-            reportContent="${reportContent}${dfReportLines[$i]}${nl}"
-            resultDisksCount=$(( resultDisksCount + 1 ))
+        # Save "disk" report lines which matches regex
+        if [[ -z "${2}" || "${commandResultLines[$i]}" =~ $2 ]]; then
+            filteredLines+=("${commandResultLines[$i]}")
         fi
     done
 
-    echo "${reportContent}"
-
-    if [ 0 -eq $resultDisksCount ]; then
-        echo "No disks found"
-    fi
+    joinBy $'\n' "${filteredLines[@]}"
 }
 
-heading="Disks"
+# Prints disks utilization report
+# Globals:
+#   DISKS_FILTER_REGEXP             Filter displayed disks by this regular expression (empty string = no filtering)
+#   DISKS_HEADER_TEMPLATE           Report header template
+#   DISKS_TABLE_TEMPLATE            Report table template
+#   DISKS_TABLE_ROW_DATA_TEMPLATE   Report table row data (TDs) template
+#   DISKS_TABLE_ROW_HEADER_TEMPLATE Report table row data (THs) template
+# Arguments:
+#   None
+# Returns:
+#   Report html
+function disks {
+    local commandResult
+
+    commandResult=$( df -h --output=source,used,avail,pcent 2> /dev/null )
+
+    # Was the command successful? Maybe parameters are not supported - fallback to command without params
+    if [ $? -gt 0 ]; then
+        commandResult=$( df -h 2> /dev/null )
+
+        # Check the exit code of default command
+        if [ $? -gt 0 ]; then
+            >&2 echo "Disks report error: df command ended with error!"
+            return 1
+        fi
+    fi
+
+    commandResult=$( filterDisksByRegExp "${commandResult}" "${DISKS_FILTER_REGEXP}" )
+
+    if [ $( echo "${commandResult}" | wc -l ) -le 1 ]; then
+        >&2 echo "Disks report error: no disks found!"
+        return 1
+    fi
+
+    printf "${DISKS_HEADER_TEMPLATE}" "Disks"
+    renderTable "${commandResult}" "${DISKS_TABLE_TEMPLATE}" "${DISKS_TABLE_ROW_HEADER_TEMPLATE}" "${DISKS_TABLE_ROW_DATA_TEMPLATE}"
+}
