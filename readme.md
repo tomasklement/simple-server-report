@@ -1,6 +1,6 @@
 # Simple server report script
 
-Highly configurable bash script which generates (sends) nice html email with results of particular commands. Script is pluginable, so you can easily add your own sub-report. By default one report email contains:
+Highly configurable bash script which generates or sends nice html email with results of particular commands. Script is pluginable, so you can easily add your own sub-report. By default one report email contains:
 - Backups status (just count of differences between two folders)
 - Disks space
 - Processess with highest load
@@ -19,7 +19,7 @@ Highly configurable bash script which generates (sends) nice html email with res
 ```
 
 ## Email example
-<img src="images/email_screenshot.png" width="400" height="600" alt="Email screenshot" title="Email screenshot">
+<img src="images/email_screenshot.png" width="401" height="548" alt="Email screenshot" title="Email screenshot">
 
 ## Configuration
 
