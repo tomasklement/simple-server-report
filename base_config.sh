@@ -12,30 +12,30 @@ EMAIL_SENDER_NAME="" # (optional) Sender name, i.e.: "John Doe"
 EMAIL_REPLY_TO="" # (optional) Reply-to email, i.e.: "john.doe@gmail.com"
 EMAIL_REPLY_TO_NAME="" # (optional) Reply-to name, i.e.: "John Doe"
 
-REPORT_SCRIPTS_FOLDER="report_scripts" # Folder with sub-reports scripts
-REPORTS=( "updates" "disks" "processes" "backups" ) # Reports to be used (corresponds with names of scripts in folder configured by REPORT_SCRIPTS_FOLDER)
+REPORT_SCRIPTS_DIRECTORY="report_scripts" # Folder with sub-reports scripts
+REPORTS=( "updates" "disks" "processes" "backups" ) # Reports to be used (corresponds with names of scripts in directory  configured by REPORT_SCRIPTS_DIRECTORY)
 
 CUSTOM_CONFIG_FILE_NAME="config.sh" # Name of custom config file
-TEMPLATES_FOLDER="templates/" # Folder where html templates are stored with slash at the end
+TEMPLATES_DIRECTORY="templates/" # Folder where html templates are stored with slash at the end
 
 # Template used for mail body, parameters: headers, content
-MAIL_BODY_TEMPLATE=$( cat "${TEMPLATES_FOLDER}email.eml" )
+MAIL_BODY_TEMPLATE=$( cat "${TEMPLATES_DIRECTORY}email.eml" )
 
 # Template used for html mail body, parameters: main header, content
-MAIN_TEMPLATE=$( cat "${TEMPLATES_FOLDER}main.html" )
+MAIN_TEMPLATE=$( cat "${TEMPLATES_DIRECTORY}main.html" )
 
 # Template for particular report header, parameters: text
-REPORT_HEADER_TEMPLATE=$( cat "${TEMPLATES_FOLDER}report_header.html" )
+REPORT_HEADER_TEMPLATE=$( cat "${TEMPLATES_DIRECTORY}report_header.html" )
 
 # Simple report template with nothing special - just styled text container, parameters: text
-SIMPLE_REPORT_TEMPLATE=$( cat "${TEMPLATES_FOLDER}simple_report.html" )
+SIMPLE_REPORT_TEMPLATE=$( cat "${TEMPLATES_DIRECTORY}simple_report.html" )
 
 # Template for report with preformatted text, parameters: width (px), text
 PREFORMATTED_REPORT_LETTER_WIDTH=8 # Real width of one letter in preformatted reports in px
-PREFORMATTED_REPORT_TEMPLATE=$( cat "${TEMPLATES_FOLDER}preformatted_report.html" )
+PREFORMATTED_REPORT_TEMPLATE=$( cat "${TEMPLATES_DIRECTORY}preformatted_report.html" )
 
 # Template for tabular report, parameters: table content
-TABULAR_REPORT_TEMPLATE=$( cat "${TEMPLATES_FOLDER}tabular_report.html" )
+TABULAR_REPORT_TEMPLATE=$( cat "${TEMPLATES_DIRECTORY}tabular_report.html" )
 
 # Template for error in report, parameters: report name
-REPORT_ERROR_TEMPLATE=$( cat "${TEMPLATES_FOLDER}report_error.html" )
+REPORT_ERROR_TEMPLATE=$( cat "${TEMPLATES_DIRECTORY}report_error.html" )

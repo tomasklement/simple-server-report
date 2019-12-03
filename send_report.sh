@@ -30,7 +30,7 @@ for i in "${!REPORTS[@]}"
 do
     :
     # Load particular report
-    source "${REPORT_SCRIPTS_FOLDER}/${REPORTS[$i]}.sh"
+    source "${REPORT_SCRIPTS_DIRECTORY}/${REPORTS[$i]}.sh"
 
     # Load custom config again after loading particular report (to enable overwriting its configuration)
     if [[ -f "${CUSTOM_CONFIG_FILE_NAME}" ]]; then

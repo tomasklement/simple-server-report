@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
-BACKUPS_DATA_FOLDER="./test/one/" # Source backup folder - with slash at the end!
-BACKUPS_BACKUP_FOLDER="./test/two" # Destination backup folder - no slash at the end!
+BACKUPS_DATA_DIRECTORY="./test/one/" # Source backup directory  - with slash at the end!
+BACKUPS_BACKUP_DIRECTORY="./test/two" # Destination backup directory  - no slash at the end!
 BACKUPS_TEMPLATE="${SIMPLE_REPORT_TEMPLATE}" # Report content template
 BACKUPS_HEADER_TEMPLATE="${REPORT_HEADER_TEMPLATE}" # Report header template
 
 # Prints backups report
 # Globals:
-#   BACKUPS_DATA_FOLDER     Path to folder with data
-#   BACKUPS_BACKUP_FOLDER   Path to folder where backup should be saved
-#   BACKUPS_TEMPLATE        Template for report content
-#   BACKUPS_HEADER_TEMPLATE Template for report header
+#   BACKUPS_DATA_DIRECTORY   Path to directory  with data
+#   BACKUPS_BACKUP_DIRECTORY Path to directory  where backup should be saved
+#   BACKUPS_TEMPLATE         Template for report content
+#   BACKUPS_HEADER_TEMPLATE  Template for report header
 # Arguments:
 #   None
 # Returns:
@@ -20,17 +20,17 @@ function backups {
     local rsyncResult
     local text
 
-    if [[ ! -d "${BACKUPS_DATA_FOLDER}" ]]; then
-        >&2 echo "Backups report error: Source folder ${BACKUPS_DATA_FOLDER} doesn't exist"
+    if [[ ! -d "${BACKUPS_DATA_DIRECTORY}" ]]; then
+        >&2 echo "Backups report error: Source directory  ${BACKUPS_DATA_DIRECTORY} doesn't exist"
         return 1
     fi
 
-    if [[ ! -d "${BACKUPS_BACKUP_FOLDER}" ]]; then
-        >&2 echo "Backups report error: Destination folder ${BACKUPS_BACKUP_FOLDER} doesn't exist"
+    if [[ ! -d "${BACKUPS_BACKUP_DIRECTORY}" ]]; then
+        >&2 echo "Backups report error: Destination directory  ${BACKUPS_BACKUP_DIRECTORY} doesn't exist"
         return 1
     fi
 
-    rsyncResult=$( rsync -anz --delete --out-format="%o:%f" "${BACKUPS_DATA_FOLDER}" "${BACKUPS_BACKUP_FOLDER}" )
+    rsyncResult=$( rsync -anz --delete --out-format="%o:%f" "${BACKUPS_DATA_DIRECTORY}" "${BACKUPS_BACKUP_DIRECTORY}" )
 
     # Check the exit code of default command
     if [ $? -gt 0 ]; then

@@ -1,7 +1,7 @@
 # Simple server report script
 
 Highly configurable bash script which generates or sends nice html email with results of particular commands. Script is pluginable, so you can easily add your own sub-report. By default one report email contains:
-- Backups status (just count of differences between two folders)
+- Backups status (just count of differences between two directories)
 - Disks space
 - Processess with highest load
 - Available updates
@@ -25,7 +25,7 @@ Highly configurable bash script which generates or sends nice html email with re
 
 - See file `base_config.sh`. It contains all possible configuration variables with their default values and comments.
 - Do not change values directly in `base_config.sh` file (your changes could be overwritten by update of the script).
-- Instead, create file named `config.sh` in the same folder and add configuration variables which you want to overwrite.
+- Instead, create file named `config.sh` in the same directory  and add configuration variables which you want to overwrite.
 - Plugins in `report_scripts` have their own configuration variables located at the top of each script. See **Configuration of particular plugin** paragraph.
 
 ### Example of config.sh
@@ -41,7 +41,7 @@ EMAIL_SENDER_NAME="My server"
 
 ### Configuration of particular plugin
 
-Some plugins have their own specific configuration. It should be located at the top of particular plugin script. Plugins are located in `./report_scripts` folder. These settings can also be overwritten by `config.sh` in the root folder.
+Some plugins have their own specific configuration. It should be located at the top of particular plugin script. Plugins are located in `./report_scripts` directory . These settings can also be overwritten by `config.sh` in the root directory .
 
 ## Writing own plugin
 
