@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-source functions.sh
-
 # ------------
 # Script start
 # ------------
@@ -9,7 +7,9 @@ source functions.sh
 # Change working directory to place where this script is saved (useful when running from CRON)
 cd "$(dirname "$0")"
 
+source functions.sh
 source base_config.sh
+
 
 if [[ -f "${CUSTOM_CONFIG_FILE_NAME}" ]]; then
 	source "${CUSTOM_CONFIG_FILE_NAME}"
