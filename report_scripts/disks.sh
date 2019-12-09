@@ -80,7 +80,7 @@ function disks {
 
         # Check the exit code of default command
         if [ $? -gt 0 ]; then
-            >&2 echo "Disks report error: df command ended with error!"
+            >&2 echo "Disks report error: \"df\" command ended with error!"
             return 1
         fi
     fi

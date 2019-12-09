@@ -17,7 +17,7 @@ function updates {
     commandResult=$( /usr/lib/update-notifier/apt-check --human-readable 2> /dev/null )
 
     if [ $? -gt 0 ]; then
-        >&2 echo "Updates report error: apt-check is not supported in current system!"
+        >&2 echo "Updates report error: \"apt-check\" is not supported in current system!"
         return 1
     fi
 

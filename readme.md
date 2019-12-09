@@ -5,6 +5,7 @@ Highly configurable bash script which generates or sends nice html email with re
 - Disks space
 - Processess with highest load
 - Available updates
+- Logged users
 
 ## Usage
 ```bash

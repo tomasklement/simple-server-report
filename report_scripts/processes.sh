@@ -47,7 +47,7 @@ function processes {
 
         # Check the exit code of default command
         if [ $? -gt 0 ]; then
-            >&2 echo "Processes report error: ps command ended with error!"
+            >&2 echo "Processes report error: \"ps\" command ended with error!"
             return 1
         fi
     fi
