@@ -38,7 +38,7 @@ function backups {
         return 1
     fi
 
-    changesCount=$( echo "${rsyncResult}" | wc -l | sed -e 's/^[[:space:]]*//') # remove leading whitespaces on MacOS
+    changesCount=$( echo "${rsyncResult}" | sed '/^\s*$/d' | wc -l | sed -e 's/^[[:space:]]*//' ) # remove leading whitespaces on MacOS
 
     if [ "${changesCount}" != "0" ]; then
         text="${changesCount} files are not synchronized to backup!"
