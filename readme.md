@@ -10,13 +10,13 @@ Highly configurable bash script which generates or sends nice html email with re
 ## Usage
 ```bash
 # Generates html email and sends it
-./send_report.sh -o=sendmail
+./sendreport -o=sendmail
 
 # Prints html report to stdout
-./send_report.sh -o=html
+./sendreport -o=html
 
 # Prints eml message with html report to stdout
-./send_report.sh -o=eml
+./sendreport -o=eml
 ```
 
 ## Email example

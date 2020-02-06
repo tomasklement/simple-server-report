@@ -46,7 +46,7 @@ function logged_users {
 
     # Check the exit code
     if [ $? -gt 0 ]; then
-        >&2 echo "Logged users report error: \"who\" command ended with error!"
+        printError "Logged users report error: \"who\" command ended with error!"
         return 1
     fi
 

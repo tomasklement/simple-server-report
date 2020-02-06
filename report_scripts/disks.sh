@@ -80,7 +80,7 @@ function disks {
 
         # Check the exit code of default command
         if [ $? -gt 0 ]; then
-            >&2 echo "Disks report error: \"df\" command ended with error!"
+            printError "Disks report error: \"df\" command ended with error!"
             return 1
         fi
     fi
@@ -88,7 +88,7 @@ function disks {
     commandResult=$( filterDisksByRegExp "${commandResult}" "${DISKS_FILTER_REGEXP}" )
 
     if [ $( echo "${commandResult}" | wc -l ) -le 1 ]; then
-        >&2 echo "Disks report error: no disks found!"
+        printError "Disks report error: no disks found!"
         return 1
     fi
 

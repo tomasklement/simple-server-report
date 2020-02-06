@@ -21,12 +21,12 @@ function backups {
     local text
 
     if [[ ! -d "${BACKUPS_DATA_DIRECTORY}" ]]; then
-        >&2 echo "Backups report error: Source directory  ${BACKUPS_DATA_DIRECTORY} doesn't exist"
+        printError "Backups report error: Source directory  ${BACKUPS_DATA_DIRECTORY} doesn't exist"
         return 1
     fi
 
     if [[ ! -d "${BACKUPS_BACKUP_DIRECTORY}" ]]; then
-        >&2 echo "Backups report error: Destination directory  ${BACKUPS_BACKUP_DIRECTORY} doesn't exist"
+        printError "Backups report error: Destination directory  ${BACKUPS_BACKUP_DIRECTORY} doesn't exist"
         return 1
     fi
 
@@ -34,7 +34,7 @@ function backups {
 
     # Check the exit code of default command
     if [ $? -gt 0 ]; then
-        >&2 echo "Backups report error: rsync command ended with error!"
+        printError "Backups report error: rsync command ended with error!"
         return 1
     fi
 

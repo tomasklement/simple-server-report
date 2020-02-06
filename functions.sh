@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+# Writes given message to STDERR with additional time info
+# Globals:
+#   None
+# Arguments:
+#   Error message
+# Returns:
+#   None
+function printError {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $@" >&2
+}
+
 # Encodes UTF8 text in email header to base64
 # Globals:
 #   None
