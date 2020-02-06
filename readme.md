@@ -1,22 +1,28 @@
 # Simple server report script
 
-Highly configurable bash script which generates or sends nice html email with results of particular commands. Script is pluginable, so you can easily add your own sub-report. By default one report email contains:
-- Backups status (just count of differences between two directories)
-- Disks space
+Highly configurable bash script which generates report in html format which can be:
+- piped to another command
+- returned in eml wrapper
+- sent as an email immediately
+
+It can be used to provide very simple server monitoring. Parts of the report are designed as plugins. There are few already prepared plugins:
+- Disks space report
+- Disks health report
 - Processess with highest load
 - Available updates
-- Logged users
+- Users logged in the system
+- Two directories differences
 
 ## Usage
 ```bash
 # Generates html email and sends it
-./send_report.sh -o=sendmail
+./sendreport -o=sendmail
 
 # Prints html report to stdout
-./send_report.sh -o=html
+./sendreport -o=html
 
 # Prints eml message with html report to stdout
-./send_report.sh -o=eml
+./sendreport -o=eml
 ```
 
 ## Email example
@@ -24,10 +30,11 @@ Highly configurable bash script which generates or sends nice html email with re
 
 ## Configuration
 
-- See file `base_config.sh`. It contains all possible configuration variables with their default values and comments.
-- Do not change values directly in `base_config.sh` file (your changes could be overwritten by update of the script).
-- Instead, create file named `config.sh` in the same directory  and add configuration variables which you want to overwrite.
-- Plugins in `report_scripts` have their own configuration variables located at the top of each script. See **Configuration of particular plugin** paragraph.
+- Create `config.sh` in the script root directory and place your configuration values to it.
+- Check `base_config.sh` for available basic configuration values
+- Do not change values directly in `base_config.sh` file (your changes would be overwritten by update of the script)
+- Check plugins in `reports` directory. They have their own configuration values located at the top of each script.
+- Configuration of plugins is also placed into `config.sh`
 
 ### Example of config.sh
 
@@ -40,20 +47,17 @@ EMAIL_SENDER="noreply@myserver"
 EMAIL_SENDER_NAME="My server"
 ```
 
-### Configuration of particular plugin
-
-Some plugins have their own specific configuration. It should be located at the top of particular plugin script. Plugins are located in `./report_scripts` directory . These settings can also be overwritten by `config.sh` in the root directory .
-
 ## Writing own plugin
 
 ### Create plugin script
 
-Lets name our plugin **"example"**. Create script `./report_scripts/example.sh` with following content:
+Lets name our plugin **"example"**. Create script `./reports/example.sh` with following content:
 ```bash
 #!/usr/bin/env bash
 
-# All the logic should be in this function to avoid possible conflicts in variable names with main script. Also the function must have the same name as the plugin.
-function example {
+# All the logic should be in this function to avoid possible conflicts in variable names with main script. Also the
+# function must have the same name as the plugin and should start with "ssr::" prefix.
+function ssr::example {
     local dfReport
 
     dfReport=$( df -h )
@@ -64,6 +68,6 @@ function example {
 
 Add the name of the script (without the extension) to the configuration variable `REPORTS` in your `config.sh`
 ```bash
-REPORTS=( "updates" "disks" "processes" "backups" "example" )
+REPORTS=( "updates" "example" )
 ```
 Well done. Your report is now part of the report email.

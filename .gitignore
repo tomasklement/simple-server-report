@@ -1,1 +1,20 @@
-config.sh
+# Ignore custom configuration file
+/config.sh
+
+# Ignore all custom reports but not the default ones
+/reports/*
+!/reports/disks_health.sh
+!/reports/disks_space.sh
+!/reports/logged_users.sh
+!/reports/processes.sh
+!/reports/sync.sh
+!/reports/updates.sh
+
+# Ignore all custom templates but not the default ones
+/templates/*
+!/templates/email.eml
+!/templates/main.html
+!/templates/preformatted_report.html
+!/templates/report_header.html
+!/templates/simple_report.html
+!/templates/tabular_report.html
