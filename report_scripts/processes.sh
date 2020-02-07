@@ -7,20 +7,20 @@ PROCESSES_TABLE_TEMPLATE="${TABULAR_REPORT_TEMPLATE}" # Report table template (i
 # Report header row content template
 read -d '' PROCESSES_TABLE_ROW_HEADER_TEMPLATE  << _EOF_
 <tr>
-    <th style="text-align: left">%s</th>
-    <th style="text-align: right">%s</th>
-    <th style="text-align: right">%s</th>
-    <th style="text-align: left">%s</th>
+  <th style="text-align: left">%s</th>
+  <th style="text-align: right">%s</th>
+  <th style="text-align: right">%s</th>
+  <th style="text-align: left">%s</th>
 </tr>
 _EOF_
 
 # Report data row content template
 read -d '' PROCESSES_TABLE_ROW_DATA_TEMPLATE  << _EOF_
 <tr>
-    <td style="text-align: left">%s</td>
-    <td style="text-align: right">%s</td>
-    <td style="text-align: right">%s</td>
-    <td style="text-align: left">%s</td>
+  <td style="text-align: left">%s</td>
+  <td style="text-align: right">%s</td>
+  <td style="text-align: right">%s</td>
+  <td style="text-align: left">%s</td>
 </tr>
 _EOF_
 
@@ -36,25 +36,26 @@ _EOF_
 # Returns:
 #   Report html
 function processes {
-    local processesReport
-    local count=$((PROCESSES_COUNT+1)) # First line is header
+  local processesReport
+  local count=$((PROCESSES_COUNT+1)) # First line is header
 
-    processesReport=$( ps -e -o user,%cpu,%mem,comm --sort -%cpu 2> /dev/null )
+  processesReport=$( ps -e -o user,%cpu,%mem,comm --sort -%cpu 2> /dev/null )
 
-    # Check if command fails on unsupported params and fallback to less sophisticated command
+  # Check if command fails on unsupported params and fallback to less sophisticated command
+  if [ $? -gt 0 ]; then
+    processesReport=$( ps -e -r -o user,%cpu,%mem,comm 2> /dev/null )
+
+    # Check the exit code of default command
     if [ $? -gt 0 ]; then
-        processesReport=$( ps -e -r -o user,%cpu,%mem,comm 2> /dev/null )
-
-        # Check the exit code of default command
-        if [ $? -gt 0 ]; then
-            printError "Processes report error: \"ps\" command ended with error!"
-            return 1
-        fi
+      printError "Processes report error: \"ps\" command ended with error!"
+      return 1
     fi
+  fi
 
-    # Limit count of report lines
-    processesReport=$( echo "${processesReport}" | head -"${count}" )
+  # Limit count of report lines
+  processesReport=$( echo "${processesReport}" | head -"${count}" )
 
-    printf "${PROCESSES_HEADER_TEMPLATE}" "Processes"
-    renderTable "${processesReport}" "${PROCESSES_TABLE_TEMPLATE}" "${PROCESSES_TABLE_ROW_HEADER_TEMPLATE}" "${PROCESSES_TABLE_ROW_DATA_TEMPLATE}"
+  printf "${PROCESSES_HEADER_TEMPLATE}" "Processes"
+  renderTable "${processesReport}" "${PROCESSES_TABLE_TEMPLATE}" "${PROCESSES_TABLE_ROW_HEADER_TEMPLATE}" \
+    "${PROCESSES_TABLE_ROW_DATA_TEMPLATE}"
 }

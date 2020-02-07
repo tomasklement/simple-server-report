@@ -12,15 +12,15 @@ UPDATES_TEMPLATE="${SIMPLE_REPORT_TEMPLATE}" # Report content template (inherite
 # Returns:
 #   Report html
 function updates {
-    local commandResult
+  local commandResult
 
-    commandResult=$( /usr/lib/update-notifier/apt-check --human-readable 2> /dev/null )
+  commandResult=$( /usr/lib/update-notifier/apt-check --human-readable 2> /dev/null )
 
-    if [ $? -gt 0 ]; then
-        printError "Updates report error: \"apt-check\" is not supported in current system!"
-        return 1
-    fi
+  if [ $? -gt 0 ]; then
+    printError "Updates report error: \"apt-check\" is not supported in current system!"
+    return 1
+  fi
 
-    printf "${UPDATES_HEADER_TEMPLATE}" "Updates"
-    printf "${UPDATES_TEMPLATE}" "${commandResult}"
+  printf "${UPDATES_HEADER_TEMPLATE}" "Updates"
+  printf "${UPDATES_TEMPLATE}" "${commandResult}"
 }

@@ -16,36 +16,37 @@ BACKUPS_HEADER_TEMPLATE="${REPORT_HEADER_TEMPLATE}" # Report header template
 # Returns:
 #   Report html
 function backups {
-    local changesCount
-    local rsyncResult
-    local text
+  local changesCount
+  local rsyncResult
+  local text
 
-    if [[ ! -d "${BACKUPS_DATA_DIRECTORY}" ]]; then
-        printError "Backups report error: Source directory  ${BACKUPS_DATA_DIRECTORY} doesn't exist"
-        return 1
-    fi
+  if [[ ! -d "${BACKUPS_DATA_DIRECTORY}" ]]; then
+    printError "Backups report error: Source directory  ${BACKUPS_DATA_DIRECTORY} doesn't exist"
+    return 1
+  fi
 
-    if [[ ! -d "${BACKUPS_BACKUP_DIRECTORY}" ]]; then
-        printError "Backups report error: Destination directory  ${BACKUPS_BACKUP_DIRECTORY} doesn't exist"
-        return 1
-    fi
+  if [[ ! -d "${BACKUPS_BACKUP_DIRECTORY}" ]]; then
+    printError "Backups report error: Destination directory  ${BACKUPS_BACKUP_DIRECTORY} doesn't exist"
+    return 1
+  fi
 
-    rsyncResult=$( rsync -anz --delete --out-format="%o:%f" "${BACKUPS_DATA_DIRECTORY}" "${BACKUPS_BACKUP_DIRECTORY}" )
+  rsyncResult=$( rsync -anz --delete --out-format="%o:%f" "${BACKUPS_DATA_DIRECTORY}" "${BACKUPS_BACKUP_DIRECTORY}" )
 
-    # Check the exit code of default command
-    if [ $? -gt 0 ]; then
-        printError "Backups report error: rsync command ended with error!"
-        return 1
-    fi
+  # Check the exit code of default command
+  if [ $? -gt 0 ]; then
+    printError "Backups report error: rsync command ended with error!"
+    return 1
+  fi
 
-    changesCount=$( echo "${rsyncResult}" | sed '/^\s*$/d' | wc -l | sed -e 's/^[[:space:]]*//' ) # remove leading whitespaces on MacOS
+  # remove leading whitespaces on MacOS
+  changesCount=$( echo "${rsyncResult}" | sed '/^\s*$/d' | wc -l | sed -e 's/^[[:space:]]*//' )
 
-    if [ "${changesCount}" != "0" ]; then
-        text="${changesCount} files are not synchronized to backup!"
-    else
-        text="Backups are synchronized"
-    fi
+  if [ "${changesCount}" != "0" ]; then
+    text="${changesCount} files are not synchronized to backup!"
+  else
+    text="Backups are synchronized"
+  fi
 
-    printf "${BACKUPS_HEADER_TEMPLATE}" "Backups"
-    printf "${BACKUPS_TEMPLATE}" "${text}"
+  printf "${BACKUPS_HEADER_TEMPLATE}" "Backups"
+  printf "${BACKUPS_TEMPLATE}" "${text}"
 }

@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
+#
+# Base configuration file
 
 # !!! IMPORTANT !!!
-# To create your own configuration, create "config.sh" and define any of following configuration variables - they will override this default configuration.
+# To create your own configuration, create "config.sh" and define any of following configuration variables - they will
+# override this default configuration.
 # Do not change this file - you will prevent loosing your configuration when updating this script
 
 EMAIL_SUBJECT="Server Report" # Email subject (optional)
@@ -13,7 +16,8 @@ EMAIL_REPLY_TO="" # (optional) Reply-to email, i.e.: "john.doe@gmail.com"
 EMAIL_REPLY_TO_NAME="" # (optional) Reply-to name, i.e.: "John Doe"
 
 REPORT_SCRIPTS_DIRECTORY="report_scripts" # Folder with sub-reports scripts
-REPORTS=( "updates" "disks" "processes" "backups" "logged_users") # Reports to be used (corresponds with names of scripts in directory  configured by REPORT_SCRIPTS_DIRECTORY)
+# Reports to be used (corresponds with names of scripts in directory  configured by REPORT_SCRIPTS_DIRECTORY)
+REPORTS=( "updates" "disks" "processes" "backups" "logged_users")
 
 CUSTOM_CONFIG_FILE_NAME="config.sh" # Name of custom config file
 TEMPLATES_DIRECTORY="templates/" # Folder where html templates are stored with slash at the end

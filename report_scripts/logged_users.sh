@@ -7,24 +7,24 @@ LOGGED_USERS_MESSAGE_TEMPLATE="${SIMPLE_REPORT_TEMPLATE}" # Report message templ
 # Report header row content template
 read -d '' LOGGED_USERS_TABLE_ROW_HEADER_TEMPLATE  << _EOF_
 <tr>
-    <th style="text-align: left">%s</th>
-    <th style="text-align: left">%s</th>
-    <th style="text-align: left">%s</th>
-    <th style="text-align: left">%s</th>
-    <th style="text-align: left">%s</th>
-    <th style="text-align: left">%s</th>
+  <th style="text-align: left">%s</th>
+  <th style="text-align: left">%s</th>
+  <th style="text-align: left">%s</th>
+  <th style="text-align: left">%s</th>
+  <th style="text-align: left">%s</th>
+  <th style="text-align: left">%s</th>
 </tr>
 _EOF_
 
 # Report data row content template
 read -d '' LOGGED_USERS_TABLE_ROW_DATA_TEMPLATE  << _EOF_
 <tr>
-    <td style="text-align: left">%s</td>
-    <td style="text-align: left">%s</td>
-    <td style="text-align: left">%s</td>
-    <td style="text-align: left">%s</td>
-    <td style="text-align: left">%s</td>
-    <td style="text-align: left">%s</td>
+  <td style="text-align: left">%s</td>
+  <td style="text-align: left">%s</td>
+  <td style="text-align: left">%s</td>
+  <td style="text-align: left">%s</td>
+  <td style="text-align: left">%s</td>
+  <td style="text-align: left">%s</td>
 </tr>
 _EOF_
 
@@ -40,22 +40,23 @@ _EOF_
 # Returns:
 #   Report html
 function logged_users {
-    local processesReport
+  local processesReport
 
-    loggedUsersReport=$( who -H -u 2> /dev/null )
+  loggedUsersReport=$( who -H -u 2> /dev/null )
 
-    # Check the exit code
-    if [ $? -gt 0 ]; then
-        printError "Logged users report error: \"who\" command ended with error!"
-        return 1
-    fi
+  # Check the exit code
+  if [ $? -gt 0 ]; then
+    printError "Logged users report error: \"who\" command ended with error!"
+    return 1
+  fi
 
-    printf "${LOGGED_USERS_HEADER_TEMPLATE}" "Logged users"
+  printf "${LOGGED_USERS_HEADER_TEMPLATE}" "Logged users"
 
-    if [ $( echo "${loggedUsersReport}" | wc -l ) -le 1 ]; then
-        # No users logged-in - only header line was printed
-        printf "${LOGGED_USERS_MESSAGE_TEMPLATE}" "No users are logged-in"
-    else
-        renderTable "${loggedUsersReport}" "${LOGGED_USERS_TABLE_TEMPLATE}" "${LOGGED_USERS_TABLE_ROW_HEADER_TEMPLATE}" "${LOGGED_USERS_TABLE_ROW_DATA_TEMPLATE}"
-    fi
+  if [ $( echo "${loggedUsersReport}" | wc -l ) -le 1 ]; then
+    # No users logged-in - only header line was printed
+    printf "${LOGGED_USERS_MESSAGE_TEMPLATE}" "No users are logged-in"
+  else
+    renderTable "${loggedUsersReport}" "${LOGGED_USERS_TABLE_TEMPLATE}" \
+      "${LOGGED_USERS_TABLE_ROW_HEADER_TEMPLATE}" "${LOGGED_USERS_TABLE_ROW_DATA_TEMPLATE}"
+  fi
 }
