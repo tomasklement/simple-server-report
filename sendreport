@@ -2,7 +2,8 @@
 #
 # Generates (and optionally sends) customizable server report
 
-# Change working directory to place where this script is saved (useful when running from CRON)
+# Change working directory to place where this script is saved (useful when
+# running from CRON)
 cd "$(dirname "$0")"
 
 source functions.sh
@@ -30,7 +31,8 @@ do
   # Load particular report
   source "${REPORT_SCRIPTS_DIRECTORY}/${REPORTS[$i]}.sh"
 
-  # Load custom config again after loading particular report (to enable overwriting its configuration)
+  # Load custom config again after loading particular report (to enable
+  # overwriting its configuration)
   if [[ -f "${CUSTOM_CONFIG_FILE_NAME}" ]]; then
     source "${CUSTOM_CONFIG_FILE_NAME}"
   fi
@@ -49,6 +51,9 @@ done
 mailHeaders=$( createMailHeaders )
 mailHtml=$( printf "${MAIN_TEMPLATE}" "${EMAIL_SUBJECT}" "${reportsContent}" )
 mailBody=$( printf "${MAIL_BODY_TEMPLATE}" "${mailHeaders}" "${mailHtml}" )
+
+echo "exit ${outputType}"
+exit 1
 
 # Send email
 case ${outputType} in

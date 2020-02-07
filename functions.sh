@@ -325,15 +325,15 @@ function renderTable {
   printf "${2}" "${tableHtml}"
 }
 
-# Prints given text and script common help
+# Prints arguments error message with script common help
 # Globals:
 #   None
 # Arguments:
 #   Text
 # Returns:
 #   Given text with common help text
-function printTextWithHelp {
-  printf "${1} \n\n"
+function printArgumentsError {
+  printf "${1} \n\n" >&2
   printHelp
 }
 
@@ -344,7 +344,7 @@ function printTextWithHelp {
 #   Text
 # Returns:
 #   Help text
-function printHelp {
+function printArgumentsErrorHelp {
   echo "Usage: -o=<type>"
   echo "Possible output types:"
   echo "   eml    Prints report in eml format to stdout"
@@ -368,7 +368,7 @@ function getOutputTypeFromScriptOptions {
 
   # Case when no options provided - just print help to stderr
   if [ -z "$@" ]; then
-    >&2 printHelp
+    printArgumentsErrorHelp
     return
   fi
 
@@ -379,18 +379,18 @@ function getOutputTypeFromScriptOptions {
         outputType="${OPTARG//=}"
       ;;
       \? )
-        >&2 printTextWithHelp "Invalid option: \"$OPTARG\""
+        printArgumentsError "Invalid option: \"$OPTARG\""
         return
       ;;
       : )
-        >&2 printTextWithHelp "Invalid option: \"${OPTARG}\" requires an argument (type)"
+        printArgumentsError "Invalid option: \"${OPTARG}\" requires an argument (type)"
         return
       ;;
     esac
   done
 
   if ! isStringInArray "${outputType}" "${validOutputTypes[@]}"; then
-    >&2 printTextWithHelp "Invalid option: -o unsupported output type \"${outputType}\""
+    printArgumentsError "Invalid option: -o unsupported output type \"${outputType}\""
     return
   fi
 
