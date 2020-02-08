@@ -19,7 +19,9 @@ function printError {
 # Returns:
 #   Encoded text suitable for mail header
 function encodeHeaderText {
-  echo -n "${1}" | base64 | xargs printf "=?UTF-8?B?%s?="
+  echo -n "${1}" \
+    | base64 \
+    | xargs printf "=?UTF-8?B?%s?="
 }
 
 # Returns length of longest line (count of characters) in text with new lines
@@ -39,7 +41,12 @@ function getReportWidth {
   for i in "${!reportLines[@]}"
   do
     :
-    lineLength=$( echo "${reportLines[$i]}" | wc -c | sed -e 's/^[[:space:]]*//' )
+    lineLength=$(
+      echo "${reportLines[$i]}" \
+        | wc -c \
+        | sed -e 's/^[[:space:]]*//' 
+    )
+
     if [ "${lineLength}" -ge "${maxLineLength}" ]; then
       maxLineLength=$lineLength
     fi
@@ -83,8 +90,10 @@ function createMailHeaderContent {
 #   Headers suitable for email body
 function createMailHeaders {
   local nl=$'\n'
-  local to=$( createMailHeaderContent "${EMAIL_RECIPIENT}" "${EMAIL_RECIPIENT_NAME}" )
-  local from=$( createMailHeaderContent "${EMAIL_SENDER}" "${EMAIL_SENDER_NAME}" )
+  local to=$( createMailHeaderContent "${EMAIL_RECIPIENT}" \
+    "${EMAIL_RECIPIENT_NAME}" )
+  local from=$( createMailHeaderContent "${EMAIL_SENDER}" \
+    "${EMAIL_SENDER_NAME}" )
   local header
   local headers="From: ${from}${nl}To: ${to}${nl}"
 
@@ -94,7 +103,8 @@ function createMailHeaders {
   fi
 
   if [[ ! -z "${EMAIL_REPLY_TO}" ]]; then
-    header=$( createMailHeaderContent "${EMAIL_REPLY_TO}" "${EMAIL_REPLY_TO_NAME}" )
+    header=$( createMailHeaderContent "${EMAIL_REPLY_TO}" \
+      "${EMAIL_REPLY_TO_NAME}" )
     headers="${headers}Reply-To: ${header}${nl}"
   fi
 
@@ -150,7 +160,8 @@ function detectSpacesPositions {
         if [ $lineNum -eq 0 ] ; then
           spacesPositions+=($charPos)
         else
-          # For lines no. > 0 save only spaces positions which were also detected in previous lines
+          # For lines no. > 0 save only spaces positions which were also
+          # detected in previous lines
           if isNumberInArray $charPos "${spacesPositions[*]}"; then
             filteredSpacesPositions+=($charPos)
           fi
@@ -177,7 +188,7 @@ function detectSpacesPositions {
 #   True or false
 function isNumberInArray {
   local value
-  local values=( `echo "${2}"` )
+  local values=( $(echo "${2}") )
 
   for value in "${values[@]}"
   do
@@ -240,7 +251,9 @@ function joinBy {
 # Returns:
 #   Count of occurences
 function getStringsCount {
-  echo "${1}" | tr " " "\n" | grep -c "${2}"
+  echo "${1}" \
+    | tr " " "\n" \
+    | grep -c "${2}"
 }
 
 # Splits report row to array of cell values using common spaces positions array
@@ -257,7 +270,7 @@ function parseRow {
   local cellContent
   local previous="space"
   local cells=()
-  local spacesPositions=( `echo "${2}"` )
+  local spacesPositions=( $(echo "${2}") )
 
   for charPos in $(seq 1 ${#1})
   do
@@ -290,8 +303,10 @@ function parseRow {
 # Arguments:
 #   Textual report result
 #   Table template with %s placeholder which will be replaced by table rows
-#   Table header row template with %s placeholders which will be replaced by first row cells data
-#   Table data row template with %s placeholders which will be replaced by row cells data
+#   Table header row template with %s placeholders which will be replaced by 
+#     first row cells data
+#   Table data row template with %s placeholders which will be replaced by row 
+#     cells data
 # Returns:
 #   Report formatted as html table
 function renderTable {
@@ -301,7 +316,7 @@ function renderTable {
   local rowHtml
   local placeholdersCount
   local tableHtml=""
-  local spacesPositions=( `detectSpacesPositions "${1}"` )
+  local spacesPositions=( $(detectSpacesPositions "${1}") )
   local IFS=$'\n'
   local reportRows=( $1 )
 
@@ -334,7 +349,7 @@ function renderTable {
 #   Given text with common help text
 function printArgumentsError {
   printf "${1} \n\n" >&2
-  printHelp
+  printArgumentsErrorHelp
 }
 
 # Prints script usage help
@@ -345,15 +360,21 @@ function printArgumentsError {
 # Returns:
 #   Help text
 function printArgumentsErrorHelp {
-  echo "Usage: -o=<type>"
-  echo "Possible output types:"
-  echo "   eml    Prints report in eml format to stdout"
-  echo "   html   Prints report in html format to stdout"
-  echo "   sendmail Creates report in eml format and sends directly by sendmail (does not print anything to stdout)"
+  local text
+
+  text=$'Usage: -o=<type>\n'
+  text+=$'Possible output types:\n'
+  text+=$'   eml      Prints report in eml format to stdout\n'
+  text+=$'   html     Prints report in html format to stdout\n'
+  text+=$'   sendmail Creates report in eml format and sends directly by '
+  text+=$'sendmail (does not print anything to stdout)\n'
+
+  echo "${text}" >&2
 }
 
 # Gets argument of script option "-o"
-# Prints help messages to stderr in case it cannot find the "-o" option or its argument
+# Prints help messages to stderr in case it cannot find the "-o" option or its 
+#   argument
 # Globals:
 #   None
 # Arguments:
@@ -383,14 +404,16 @@ function getOutputTypeFromScriptOptions {
         return
       ;;
       : )
-        printArgumentsError "Invalid option: \"${OPTARG}\" requires an argument (type)"
+        printArgumentsError \
+          "Invalid option: \"${OPTARG}\" requires an argument (type)"
         return
       ;;
     esac
   done
 
   if ! isStringInArray "${outputType}" "${validOutputTypes[@]}"; then
-    printArgumentsError "Invalid option: -o unsupported output type \"${outputType}\""
+    printArgumentsError \
+      "Invalid option: -o unsupported output type \"${outputType}\""
     return
   fi
 

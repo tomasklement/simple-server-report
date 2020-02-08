@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 
-DISKS_FILTER_REGEXP="dev" # Filter displayed disks by this regular expression (empty string = no filtering)
-DISKS_HEADER_TEMPLATE="${REPORT_HEADER_TEMPLATE}" # Report header template (inherited)
-DISKS_TABLE_TEMPLATE="${TABULAR_REPORT_TEMPLATE}" # Report table template (inherited)
+# Filter displayed disks by this regular expression
+# (empty string = no filtering)
+DISKS_FILTER_REGEXP="dev"
+# Report header template (inherited)
+DISKS_HEADER_TEMPLATE="${REPORT_HEADER_TEMPLATE}"
+# Report table template (inherited)
+DISKS_TABLE_TEMPLATE="${TABULAR_REPORT_TEMPLATE}"
 
 # Report data row content template
 read -d '' DISKS_TABLE_ROW_DATA_TEMPLATE << _EOF_
@@ -60,7 +64,8 @@ function filterDisksByRegExp {
 
 # Prints disks utilization report
 # Globals:
-#   DISKS_FILTER_REGEXP             Filter displayed disks by this regular expression (empty string = no filtering)
+#   DISKS_FILTER_REGEXP             Filter displayed disks by this regular 
+#                                   expression (empty string = no filtering)
 #   DISKS_HEADER_TEMPLATE           Report header template
 #   DISKS_TABLE_TEMPLATE            Report table template
 #   DISKS_TABLE_ROW_DATA_TEMPLATE   Report table row data (TDs) template
@@ -71,10 +76,12 @@ function filterDisksByRegExp {
 #   Report html
 function disks {
   local commandResult
+  local linesCount
 
   commandResult=$( df -h --output=source,used,avail,pcent 2> /dev/null )
 
-  # Was the command successful? Maybe parameters are not supported - fallback to command without params
+  # Was the command successful? Maybe parameters are not supported - fallback to
+  # command without params
   if [ $? -gt 0 ]; then
     commandResult=$( df -h 2> /dev/null )
 
@@ -85,14 +92,21 @@ function disks {
     fi
   fi
 
-  commandResult=$( filterDisksByRegExp "${commandResult}" "${DISKS_FILTER_REGEXP}" )
+  commandResult=$(
+    filterDisksByRegExp "${commandResult}" "${DISKS_FILTER_REGEXP}"
+  )
 
-  if [ $( echo "${commandResult}" | wc -l ) -le 1 ]; then
+  linesCount=$(
+    echo "${commandResult}" \
+      | wc -l
+  )
+
+  if [ "${linesCount}" -le 1 ]; then
     printError "Disks report error: no disks found!"
     return 1
   fi
 
   printf "${DISKS_HEADER_TEMPLATE}" "Disks"
-  renderTable "${commandResult}" "${DISKS_TABLE_TEMPLATE}" "${DISKS_TABLE_ROW_HEADER_TEMPLATE}" \
-    "${DISKS_TABLE_ROW_DATA_TEMPLATE}"
+  renderTable "${commandResult}" "${DISKS_TABLE_TEMPLATE}" \
+    "${DISKS_TABLE_ROW_HEADER_TEMPLATE}"  "${DISKS_TABLE_ROW_DATA_TEMPLATE}"
 }

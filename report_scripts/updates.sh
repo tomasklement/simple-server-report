@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
-UPDATES_HEADER_TEMPLATE="${REPORT_HEADER_TEMPLATE}" # Report header template (inherited)
-UPDATES_TEMPLATE="${SIMPLE_REPORT_TEMPLATE}" # Report content template (inherited)
+# Report header template (inherited)
+UPDATES_HEADER_TEMPLATE="${REPORT_HEADER_TEMPLATE}"
+# Report content template (inherited)
+UPDATES_TEMPLATE="${SIMPLE_REPORT_TEMPLATE}"
 
 # Prints packages which should be updated (only UBUNTU)
 # Globals:
@@ -13,11 +15,16 @@ UPDATES_TEMPLATE="${SIMPLE_REPORT_TEMPLATE}" # Report content template (inherite
 #   Report html
 function updates {
   local commandResult
+  local errorText
 
-  commandResult=$( /usr/lib/update-notifier/apt-check --human-readable 2> /dev/null )
+  commandResult=$(
+    /usr/lib/update-notifier/apt-check --human-readable 2> /dev/null
+  )
 
   if [ $? -gt 0 ]; then
-    printError "Updates report error: \"apt-check\" is not supported in current system!"
+    errorText="Updates report error: \"apt-check\" is not supported in current "
+    errorText+="system!"
+    printError "${errorText}"
     return 1
   fi
 

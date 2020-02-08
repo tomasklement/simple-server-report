@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
-PROCESSES_COUNT="5" # count of most demanding processes displayed in the list
-PROCESSES_HEADER_TEMPLATE="${REPORT_HEADER_TEMPLATE}" # Report header template (inherited)
-PROCESSES_TABLE_TEMPLATE="${TABULAR_REPORT_TEMPLATE}" # Report table template (inherited)
+# count of most demanding processes displayed in the list
+PROCESSES_COUNT="5"
+# Report header template (inherited)
+PROCESSES_HEADER_TEMPLATE="${REPORT_HEADER_TEMPLATE}"
+# Report table template (inherited)
+PROCESSES_TABLE_TEMPLATE="${TABULAR_REPORT_TEMPLATE}"
 
 # Report header row content template
 read -d '' PROCESSES_TABLE_ROW_HEADER_TEMPLATE  << _EOF_
@@ -26,7 +29,8 @@ _EOF_
 
 # Prints CPU utilization and most demanding processes
 # Globals:
-#   PROCESSES_COUNT                     Count of most demanding processes displayed in the list
+#   PROCESSES_COUNT                     Count of most demanding processes
+#                                       displayed in the list
 #   PROCESSES_HEADER_TEMPLATE           Report header template
 #   PROCESSES_TABLE_TEMPLATE            Report table template
 #   PROCESSES_TABLE_ROW_DATA_TEMPLATE   Report table row data (TDs) template
@@ -41,7 +45,8 @@ function processes {
 
   processesReport=$( ps -e -o user,%cpu,%mem,comm --sort -%cpu 2> /dev/null )
 
-  # Check if command fails on unsupported params and fallback to less sophisticated command
+  # Check if command fails on unsupported params and fallback to less
+  # sophisticated command
   if [ $? -gt 0 ]; then
     processesReport=$( ps -e -r -o user,%cpu,%mem,comm 2> /dev/null )
 
@@ -53,9 +58,13 @@ function processes {
   fi
 
   # Limit count of report lines
-  processesReport=$( echo "${processesReport}" | head -"${count}" )
+  processesReport=$(
+    echo "${processesReport}" \
+      | head -"${count}"
+  )
 
   printf "${PROCESSES_HEADER_TEMPLATE}" "Processes"
-  renderTable "${processesReport}" "${PROCESSES_TABLE_TEMPLATE}" "${PROCESSES_TABLE_ROW_HEADER_TEMPLATE}" \
+  renderTable "${processesReport}" "${PROCESSES_TABLE_TEMPLATE}" \
+    "${PROCESSES_TABLE_ROW_HEADER_TEMPLATE}" \
     "${PROCESSES_TABLE_ROW_DATA_TEMPLATE}"
 }

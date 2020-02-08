@@ -52,9 +52,6 @@ mailHeaders=$( createMailHeaders )
 mailHtml=$( printf "${MAIN_TEMPLATE}" "${EMAIL_SUBJECT}" "${reportsContent}" )
 mailBody=$( printf "${MAIL_BODY_TEMPLATE}" "${mailHeaders}" "${mailHtml}" )
 
-echo "exit ${outputType}"
-exit 1
-
 # Send email
 case ${outputType} in
   "html" )
@@ -64,7 +61,8 @@ case ${outputType} in
     echo -n "${mailBody}"
   ;;
   "sendmail" )
-    echo "${mailBody}" | sendmail "${EMAIL_RECIPIENT}"
+    echo "${mailBody}" \
+      | sendmail "${EMAIL_RECIPIENT}"
     echo "Report sent to ${EMAIL_RECIPIENT}"
   ;;
 esac
