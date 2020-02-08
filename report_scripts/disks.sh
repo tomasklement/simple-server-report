@@ -37,29 +37,29 @@ _EOF_
 # Returns:
 #   Result of df command with filtered disks
 function ssr::filter_disks_by_regexp {
-  local commandResultLines
+  local command_result_lines
   local i
-  local filteredLines=()
+  local filtered_lines=()
   local IFS=$'\n'
 
-  commandResultLines=( $1 )
+  command_result_lines=( $1 )
 
-  for i in "${!commandResultLines[@]}"
+  for i in "${!command_result_lines[@]}"
   do
     :
     # Save header line
     if [[ $i -eq 0 ]]; then
-      filteredLines+=("${commandResultLines[$i]}")
+      filtered_lines+=("${command_result_lines[$i]}")
       continue
     fi
 
     # Save "disk" report lines which matches regex
-    if [[ -z "${2}" || "${commandResultLines[$i]}" =~ $2 ]]; then
-      filteredLines+=("${commandResultLines[$i]}")
+    if [[ -z "${2}" || "${command_result_lines[$i]}" =~ $2 ]]; then
+      filtered_lines+=("${command_result_lines[$i]}")
     fi
   done
 
-  ssr::join_by $'\n' "${filteredLines[@]}"
+  ssr::join_by $'\n' "${filtered_lines[@]}"
 }
 
 # Prints disks utilization report
@@ -75,15 +75,15 @@ function ssr::filter_disks_by_regexp {
 # Returns:
 #   Report html
 function ssr::disks {
-  local commandResult
-  local linesCount
+  local command_result
+  local lines_count
 
-  commandResult=$( df -h --output=source,used,avail,pcent 2> /dev/null )
+  command_result=$( df -h --output=source,used,avail,pcent 2> /dev/null )
 
   # Was the command successful? Maybe parameters are not supported - fallback to
   # command without params
   if [[ $? -gt 0 ]]; then
-    commandResult=$( df -h 2> /dev/null )
+    command_result=$( df -h 2> /dev/null )
 
     # Check the exit code of default command
     if [[ $? -gt 0 ]]; then
@@ -92,21 +92,21 @@ function ssr::disks {
     fi
   fi
 
-  commandResult=$(
-    ssr::filter_disks_by_regexp "${commandResult}" "${DISKS_FILTER_REGEXP}"
+  command_result=$(
+    ssr::filter_disks_by_regexp "${command_result}" "${DISKS_FILTER_REGEXP}"
   )
 
-  linesCount=$(
-    echo "${commandResult}" \
+  lines_count=$(
+    echo "${command_result}" \
       | wc -l
   )
 
-  if [[ "${linesCount}" -le 1 ]]; then
+  if [[ "${lines_count}" -le 1 ]]; then
     ssr::print_error "Disks report error: no disks found!"
     return 1
   fi
 
   printf "${DISKS_HEADER_TEMPLATE}" "Disks"
-  ssr::render_table "${commandResult}" "${DISKS_TABLE_TEMPLATE}" \
+  ssr::render_table "${command_result}" "${DISKS_TABLE_TEMPLATE}" \
     "${DISKS_TABLE_ROW_HEADER_TEMPLATE}"  "${DISKS_TABLE_ROW_DATA_TEMPLATE}"
 }

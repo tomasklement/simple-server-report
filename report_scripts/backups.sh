@@ -20,8 +20,8 @@ BACKUPS_HEADER_TEMPLATE="${REPORT_HEADER_TEMPLATE}"
 # Returns:
 #   Report html
 function ssr::backups {
-  local changesCount
-  local rsyncResult
+  local changes_count
+  local rsync_result
   local text
 
   if [[ ! -d "${BACKUPS_DATA_DIRECTORY}" ]]; then
@@ -38,7 +38,7 @@ function ssr::backups {
     return 1
   fi
 
-  rsyncResult=$(
+  rsync_result=$(
     rsync -anz --delete --out-format="%o:%f" "${BACKUPS_DATA_DIRECTORY}" \
       "${BACKUPS_BACKUP_DIRECTORY}"
   )
@@ -50,15 +50,15 @@ function ssr::backups {
   fi
 
   # remove leading whitespaces on MacOS
-  changesCount=$(
-    echo "${rsyncResult}" \
+  changes_count=$(
+    echo "${rsync_result}" \
       | sed '/^\s*$/d' \
       | wc -l \
       | sed -e 's/^[[:space:]]*//'
   )
 
-  if [[ "${changesCount}" != "0" ]]; then
-    text="${changesCount} files are not synchronized to backup!"
+  if [[ "${changes_count}" != "0" ]]; then
+    text="${changes_count} files are not synchronized to backup!"
   else
     text="Backups are synchronized"
   fi

@@ -17,13 +17,13 @@ fi
 ssr::validate_configuration
 
 # Get output type from script options, perform validation of script options
-outputType=$( ssr::get_output_type_from_script_options "$@" )
-if [[ -z "${outputType}" ]]; then
+output_type=$( ssr::get_output_type_from_script_options "$@" )
+if [[ -z "${output_type}" ]]; then
   exit 1
 fi
 
 # Get the text of the report
-reportsContent=""
+reports_content=""
 
 for i in "${!REPORTS[@]}"
 do
@@ -37,31 +37,31 @@ do
     source "${CUSTOM_CONFIG_FILE_NAME}"
   fi
 
-  # Function with the same name as report is called
-  reportContent=$( "ssr::${REPORTS[$i]}" )
+  # Function with the same name as report is called (+ "ssr::" prefix)
+  report_content=$( "ssr::${REPORTS[$i]}" )
 
   # In case the report ended with error exit status, show warning message
   if [[ $? -gt 0 ]]; then
-    reportContent=$( printf "${REPORT_ERROR_TEMPLATE}" "${REPORTS[$i]}" )
+    report_content=$( printf "${REPORT_ERROR_TEMPLATE}" "${REPORTS[$i]}" )
   fi
 
-  reportsContent="${reportsContent}${reportContent}"
+  reports_content="${reports_content}${report_content}"
 done
 
-mailHeaders=$( ssr::create_mail_headers )
-mailHtml=$( printf "${MAIN_TEMPLATE}" "${EMAIL_SUBJECT}" "${reportsContent}" )
-mailBody=$( printf "${MAIL_BODY_TEMPLATE}" "${mailHeaders}" "${mailHtml}" )
+mail_headers=$( ssr::create_mail_headers )
+mail_html=$( printf "${MAIN_TEMPLATE}" "${EMAIL_SUBJECT}" "${reports_content}" )
+mail_body=$( printf "${MAIL_BODY_TEMPLATE}" "${mail_headers}" "${mail_html}" )
 
 # Send email
-case ${outputType} in
+case ${output_type} in
   "html" )
-    echo -n "${mailHtml}"
+    echo -n "${mail_html}"
   ;;
   "eml" )
-    echo -n "${mailBody}"
+    echo -n "${mail_body}"
   ;;
   "sendmail" )
-    echo "${mailBody}" \
+    echo "${mail_body}" \
       | sendmail "${EMAIL_RECIPIENT}"
     echo "Report sent to ${EMAIL_RECIPIENT}"
   ;;

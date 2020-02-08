@@ -14,20 +14,20 @@ UPDATES_TEMPLATE="${SIMPLE_REPORT_TEMPLATE}"
 # Returns:
 #   Report html
 function ssr::updates {
-  local commandResult
-  local errorText
+  local command_result
+  local error_text
 
-  commandResult=$(
+  command_result=$(
     /usr/lib/update-notifier/apt-check --human-readable 2> /dev/null
   )
 
   if [[ $? -gt 0 ]]; then
-    errorText="Updates report error: \"apt-check\" is not supported in current "
-    errorText+="system!"
-    ssr::print_error "${errorText}"
+    error_text="Updates report error: \"apt-check\" is not supported in current"
+    error_text+=" system!"
+    ssr::print_error "${error_text}"
     return 1
   fi
 
   printf "${UPDATES_HEADER_TEMPLATE}" "Updates"
-  printf "${UPDATES_TEMPLATE}" "${commandResult}"
+  printf "${UPDATES_TEMPLATE}" "${command_result}"
 }

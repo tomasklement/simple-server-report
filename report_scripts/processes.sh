@@ -40,15 +40,15 @@ _EOF_
 # Returns:
 #   Report html
 function ssr::processes {
-  local processesReport
+  local processes_report
   local count=$((PROCESSES_COUNT+1)) # First line is header
 
-  processesReport=$( ps -e -o user,%cpu,%mem,comm --sort -%cpu 2> /dev/null )
+  processes_report=$( ps -e -o user,%cpu,%mem,comm --sort -%cpu 2> /dev/null )
 
   # Check if command fails on unsupported params and fallback to less
   # sophisticated command
   if [[ $? -gt 0 ]]; then
-    processesReport=$( ps -e -r -o user,%cpu,%mem,comm 2> /dev/null )
+    processes_report=$( ps -e -r -o user,%cpu,%mem,comm 2> /dev/null )
 
     # Check the exit code of default command
     if [[ $? -gt 0 ]]; then
@@ -59,13 +59,13 @@ function ssr::processes {
   fi
 
   # Limit count of report lines
-  processesReport=$(
-    echo "${processesReport}" \
+  processes_report=$(
+    echo "${processes_report}" \
       | head -"${count}"
   )
 
   printf "${PROCESSES_HEADER_TEMPLATE}" "Processes"
-  ssr::render_table "${processesReport}" "${PROCESSES_TABLE_TEMPLATE}" \
+  ssr::render_table "${processes_report}" "${PROCESSES_TABLE_TEMPLATE}" \
     "${PROCESSES_TABLE_ROW_HEADER_TEMPLATE}" \
     "${PROCESSES_TABLE_ROW_DATA_TEMPLATE}"
 }

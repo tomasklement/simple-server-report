@@ -44,10 +44,10 @@ _EOF_
 # Returns:
 #   Report html
 function ssr::logged_users {
-  local processesReport
-  local linesCount
+  local logged_users_report
+  local lines_count
 
-  loggedUsersReport=$( who -H -u 2> /dev/null )
+  logged_users_report=$( who -H -u 2> /dev/null )
 
   # Check the exit code
   if [[ $? -gt 0 ]]; then
@@ -58,16 +58,17 @@ function ssr::logged_users {
 
   printf "${LOGGED_USERS_HEADER_TEMPLATE}" "Logged users"
 
-  linesCount=$(
-    echo "${loggedUsersReport}" \
+  lines_count=$(
+    echo "${logged_users_report}" \
       | wc -l
   )
 
-  if [[ "${linesCount}" -le 1 ]]; then
+  if [[ "${lines_count}" -le 1 ]]; then
     # No users logged-in - only header line was printed
     printf "${LOGGED_USERS_MESSAGE_TEMPLATE}" "No users are logged-in"
   else
-    ssr::render_table "${loggedUsersReport}" "${LOGGED_USERS_TABLE_TEMPLATE}" \
+    ssr::render_table "${logged_users_report}" \
+      "${LOGGED_USERS_TABLE_TEMPLATE}" \
       "${LOGGED_USERS_TABLE_ROW_HEADER_TEMPLATE}" \
       "${LOGGED_USERS_TABLE_ROW_DATA_TEMPLATE}"
   fi
