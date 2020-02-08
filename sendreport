@@ -18,7 +18,7 @@ validateConfiguration
 
 # Get output type from script options, perform validation of script options
 outputType=$( getOutputTypeFromScriptOptions "$@" )
-if [ -z "${outputType}" ]; then
+if [[ -z "${outputType}" ]]; then
   exit 1
 fi
 
@@ -41,7 +41,7 @@ do
   reportContent=$( "${REPORTS[$i]}" )
 
   # In case the report ended with error exit status, show warning message
-  if [ $? -gt 0 ]; then
+  if [[ $? -gt 0 ]]; then
     reportContent=$( printf "${REPORT_ERROR_TEMPLATE}" "${REPORTS[$i]}" )
   fi
 

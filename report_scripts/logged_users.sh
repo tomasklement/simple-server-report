@@ -34,7 +34,7 @@ _EOF_
 # Prints all logged users with details
 # Globals:
 #   LOGGED_USERS_HEADER_TEMPLATE           Report header template
-#   LOGGED_USERS_MESSAGE_TEMPLATE          Report message template for case no 
+#   LOGGED_USERS_MESSAGE_TEMPLATE          Report message template for case no
 #                                          users logged-in
 #   LOGGED_USERS_TABLE_TEMPLATE            Report table template
 #   LOGGED_USERS_TABLE_ROW_DATA_TEMPLATE   Report table row data (TDs) template
@@ -50,7 +50,7 @@ function logged_users {
   loggedUsersReport=$( who -H -u 2> /dev/null )
 
   # Check the exit code
-  if [ $? -gt 0 ]; then
+  if [[ $? -gt 0 ]]; then
     printError "Logged users report error: \"who\" command ended with error!"
     return 1
   fi
@@ -62,7 +62,7 @@ function logged_users {
       | wc -l
   )
 
-  if [ "${linesCount}" -le 1 ]; then
+  if [[ "${linesCount}" -le 1 ]]; then
     # No users logged-in - only header line was printed
     printf "${LOGGED_USERS_MESSAGE_TEMPLATE}" "No users are logged-in"
   else

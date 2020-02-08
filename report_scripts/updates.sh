@@ -21,7 +21,7 @@ function updates {
     /usr/lib/update-notifier/apt-check --human-readable 2> /dev/null
   )
 
-  if [ $? -gt 0 ]; then
+  if [[ $? -gt 0 ]]; then
     errorText="Updates report error: \"apt-check\" is not supported in current "
     errorText+="system!"
     printError "${errorText}"

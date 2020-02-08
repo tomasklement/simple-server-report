@@ -44,7 +44,7 @@ function backups {
   )
 
   # Check the exit code of default command
-  if [ $? -gt 0 ]; then
+  if [[ $? -gt 0 ]]; then
     printError "Backups report error: rsync command ended with error!"
     return 1
   fi
@@ -57,7 +57,7 @@ function backups {
       | sed -e 's/^[[:space:]]*//'
   )
 
-  if [ "${changesCount}" != "0" ]; then
+  if [[ "${changesCount}" != "0" ]]; then
     text="${changesCount} files are not synchronized to backup!"
   else
     text="Backups are synchronized"

@@ -47,11 +47,11 @@ function processes {
 
   # Check if command fails on unsupported params and fallback to less
   # sophisticated command
-  if [ $? -gt 0 ]; then
+  if [[ $? -gt 0 ]]; then
     processesReport=$( ps -e -r -o user,%cpu,%mem,comm 2> /dev/null )
 
     # Check the exit code of default command
-    if [ $? -gt 0 ]; then
+    if [[ $? -gt 0 ]]; then
       printError "Processes report error: \"ps\" command ended with error!"
       return 1
     fi

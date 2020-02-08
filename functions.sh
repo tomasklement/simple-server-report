@@ -44,10 +44,10 @@ function getReportWidth {
     lineLength=$(
       echo "${reportLines[$i]}" \
         | wc -c \
-        | sed -e 's/^[[:space:]]*//' 
+        | sed -e 's/^[[:space:]]*//'
     )
 
-    if [ "${lineLength}" -ge "${maxLineLength}" ]; then
+    if [[ "${lineLength}" -ge "${maxLineLength}" ]]; then
       maxLineLength=$lineLength
     fi
   done
@@ -67,7 +67,7 @@ function createMailHeaderContent {
   local headerContent
   local headerText
 
-  if [ -z "${2}" ]; then
+  if [[ -z "${2}" ]]; then
     echo -n "${1}"
   else
     headerText=$( encodeHeaderText "${2}" )
@@ -120,12 +120,12 @@ function createMailHeaders {
 # Returns:
 #   None
 function validateConfiguration {
-  if [ -z "${EMAIL_RECIPIENT}" ]; then
+  if [[ -z "${EMAIL_RECIPIENT}" ]]; then
     echo "Missing configuration EMAIL_RECIPIENT"
 		exit 1
   fi
 
-  if [ -z "${EMAIL_SENDER}" ]; then
+  if [[ -z "${EMAIL_SENDER}" ]]; then
     echo "Missing configuration EMAIL_SENDER"
 		exit 1
   fi
@@ -155,9 +155,9 @@ function detectSpacesPositions {
     # Find spaces positions in current line
     for charPos in $(seq 1 ${#reportLine})
     do
-      if [ "${reportLine:charPos-1:1}" == " " ] ; then
+      if [[ "${reportLine:charPos-1:1}" == " " ]]; then
         # For first line just save all detected space positions
-        if [ $lineNum -eq 0 ] ; then
+        if [[ $lineNum -eq 0 ]]; then
           spacesPositions+=($charPos)
         else
           # For lines no. > 0 save only spaces positions which were also
@@ -170,7 +170,7 @@ function detectSpacesPositions {
     done
 
     # For lines no. > 0 always save actually filtered array of spaces positions
-    if [ $lineNum -gt 0 ] ; then
+    if [[ $lineNum -gt 0 ]]; then
       spacesPositions=( "${filteredSpacesPositions[@]}" )
     fi
   done
@@ -192,7 +192,7 @@ function isNumberInArray {
 
   for value in "${values[@]}"
   do
-    if [ "${1}" -eq "${value}" ]; then
+    if [[ "${1}" -eq "${value}" ]]; then
       true
       return
     fi
@@ -220,7 +220,7 @@ function isStringInArray {
 
   for string in "${haystack[@]}"
     do
-      if [ "${needle}" == "${string}" ]; then
+      if [[ "${needle}" == "${string}" ]]; then
         true
         return
       fi
@@ -276,12 +276,12 @@ function parseRow {
   do
     char="${1:charPos-1:1}"
     if isNumberInArray $charPos "${spacesPositions[*]}"; then
-      if [ "${previous}" == "cell" ]; then
+      if [[ "${previous}" == "cell" ]]; then
         cells+=( "${cellContent}" )
       fi
       previous="space"
     else
-      if [ "${previous}" == "space" ]; then
+      if [[ "${previous}" == "space" ]]; then
         cellContent="${char}"
       else
         cellContent="${cellContent}${char}"
@@ -290,7 +290,7 @@ function parseRow {
     fi
   done
 
-  if [ "${previous}" == "cell" ]; then
+  if [[ "${previous}" == "cell" ]]; then
     cells+=( "${cellContent}" )
   fi
 
@@ -303,9 +303,9 @@ function parseRow {
 # Arguments:
 #   Textual report result
 #   Table template with %s placeholder which will be replaced by table rows
-#   Table header row template with %s placeholders which will be replaced by 
+#   Table header row template with %s placeholders which will be replaced by
 #     first row cells data
-#   Table data row template with %s placeholders which will be replaced by row 
+#   Table data row template with %s placeholders which will be replaced by row
 #     cells data
 # Returns:
 #   Report formatted as html table
@@ -325,7 +325,7 @@ function renderTable {
     rowCells=$( parseRow "${reportRows[$rowIndex]}" "${spacesPositions[*]}" )
     rowCells=( $rowCells )
 
-    if [ "${rowIndex}" -eq 0 ]; then
+    if [[ "${rowIndex}" -eq 0 ]]; then
       rowTemplate="${3}"
     else
       rowTemplate="${4}"
@@ -373,7 +373,7 @@ function printArgumentsErrorHelp {
 }
 
 # Gets argument of script option "-o"
-# Prints help messages to stderr in case it cannot find the "-o" option or its 
+# Prints help messages to stderr in case it cannot find the "-o" option or its
 #   argument
 # Globals:
 #   None
@@ -388,7 +388,7 @@ function getOutputTypeFromScriptOptions {
   local validOutputTypes=( "html" "eml" "sendmail")
 
   # Case when no options provided - just print help to stderr
-  if [ -z "$@" ]; then
+  if [[ -z "$@" ]]; then
     printArgumentsErrorHelp
     return
   fi

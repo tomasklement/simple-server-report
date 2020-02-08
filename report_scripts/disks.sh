@@ -48,7 +48,7 @@ function filterDisksByRegExp {
   do
     :
     # Save header line
-    if [ $i -eq 0 ]; then
+    if [[ $i -eq 0 ]]; then
       filteredLines+=("${commandResultLines[$i]}")
       continue
     fi
@@ -64,7 +64,7 @@ function filterDisksByRegExp {
 
 # Prints disks utilization report
 # Globals:
-#   DISKS_FILTER_REGEXP             Filter displayed disks by this regular 
+#   DISKS_FILTER_REGEXP             Filter displayed disks by this regular
 #                                   expression (empty string = no filtering)
 #   DISKS_HEADER_TEMPLATE           Report header template
 #   DISKS_TABLE_TEMPLATE            Report table template
@@ -82,11 +82,11 @@ function disks {
 
   # Was the command successful? Maybe parameters are not supported - fallback to
   # command without params
-  if [ $? -gt 0 ]; then
+  if [[ $? -gt 0 ]]; then
     commandResult=$( df -h 2> /dev/null )
 
     # Check the exit code of default command
-    if [ $? -gt 0 ]; then
+    if [[ $? -gt 0 ]]; then
       printError "Disks report error: \"df\" command ended with error!"
       return 1
     fi
@@ -101,7 +101,7 @@ function disks {
       | wc -l
   )
 
-  if [ "${linesCount}" -le 1 ]; then
+  if [[ "${linesCount}" -le 1 ]]; then
     printError "Disks report error: no disks found!"
     return 1
   fi
