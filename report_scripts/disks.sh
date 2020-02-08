@@ -36,7 +36,7 @@ _EOF_
 #   Regular expression to filter disks
 # Returns:
 #   Result of df command with filtered disks
-function filterDisksByRegExp {
+function ssr::filter_disks_by_regexp {
   local commandResultLines
   local i
   local filteredLines=()
@@ -59,7 +59,7 @@ function filterDisksByRegExp {
     fi
   done
 
-  joinBy $'\n' "${filteredLines[@]}"
+  ssr::join_by $'\n' "${filteredLines[@]}"
 }
 
 # Prints disks utilization report
@@ -74,7 +74,7 @@ function filterDisksByRegExp {
 #   None
 # Returns:
 #   Report html
-function disks {
+function ssr::disks {
   local commandResult
   local linesCount
 
@@ -87,13 +87,13 @@ function disks {
 
     # Check the exit code of default command
     if [[ $? -gt 0 ]]; then
-      printError "Disks report error: \"df\" command ended with error!"
+      ssr::print_error "Disks report error: \"df\" command ended with error!"
       return 1
     fi
   fi
 
   commandResult=$(
-    filterDisksByRegExp "${commandResult}" "${DISKS_FILTER_REGEXP}"
+    ssr::filter_disks_by_regexp "${commandResult}" "${DISKS_FILTER_REGEXP}"
   )
 
   linesCount=$(
@@ -102,11 +102,11 @@ function disks {
   )
 
   if [[ "${linesCount}" -le 1 ]]; then
-    printError "Disks report error: no disks found!"
+    ssr::print_error "Disks report error: no disks found!"
     return 1
   fi
 
   printf "${DISKS_HEADER_TEMPLATE}" "Disks"
-  renderTable "${commandResult}" "${DISKS_TABLE_TEMPLATE}" \
+  ssr::render_table "${commandResult}" "${DISKS_TABLE_TEMPLATE}" \
     "${DISKS_TABLE_ROW_HEADER_TEMPLATE}"  "${DISKS_TABLE_ROW_DATA_TEMPLATE}"
 }

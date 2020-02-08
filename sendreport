@@ -14,10 +14,10 @@ if [[ -f "${CUSTOM_CONFIG_FILE_NAME}" ]]; then
 	source "${CUSTOM_CONFIG_FILE_NAME}"
 fi
 
-validateConfiguration
+ssr::validate_configuration
 
 # Get output type from script options, perform validation of script options
-outputType=$( getOutputTypeFromScriptOptions "$@" )
+outputType=$( ssr::get_output_type_from_script_options "$@" )
 if [[ -z "${outputType}" ]]; then
   exit 1
 fi
@@ -38,7 +38,7 @@ do
   fi
 
   # Function with the same name as report is called
-  reportContent=$( "${REPORTS[$i]}" )
+  reportContent=$( "ssr::${REPORTS[$i]}" )
 
   # In case the report ended with error exit status, show warning message
   if [[ $? -gt 0 ]]; then
@@ -48,7 +48,7 @@ do
   reportsContent="${reportsContent}${reportContent}"
 done
 
-mailHeaders=$( createMailHeaders )
+mailHeaders=$( ssr::create_mail_headers )
 mailHtml=$( printf "${MAIN_TEMPLATE}" "${EMAIL_SUBJECT}" "${reportsContent}" )
 mailBody=$( printf "${MAIL_BODY_TEMPLATE}" "${mailHeaders}" "${mailHtml}" )
 

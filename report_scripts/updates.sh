@@ -13,7 +13,7 @@ UPDATES_TEMPLATE="${SIMPLE_REPORT_TEMPLATE}"
 #   None
 # Returns:
 #   Report html
-function updates {
+function ssr::updates {
   local commandResult
   local errorText
 
@@ -24,7 +24,7 @@ function updates {
   if [[ $? -gt 0 ]]; then
     errorText="Updates report error: \"apt-check\" is not supported in current "
     errorText+="system!"
-    printError "${errorText}"
+    ssr::print_error "${errorText}"
     return 1
   fi
 

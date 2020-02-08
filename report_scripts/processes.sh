@@ -39,7 +39,7 @@ _EOF_
 #   None
 # Returns:
 #   Report html
-function processes {
+function ssr::processes {
   local processesReport
   local count=$((PROCESSES_COUNT+1)) # First line is header
 
@@ -52,7 +52,8 @@ function processes {
 
     # Check the exit code of default command
     if [[ $? -gt 0 ]]; then
-      printError "Processes report error: \"ps\" command ended with error!"
+      ssr::print_error \
+        "Processes report error: \"ps\" command ended with error!"
       return 1
     fi
   fi
@@ -64,7 +65,7 @@ function processes {
   )
 
   printf "${PROCESSES_HEADER_TEMPLATE}" "Processes"
-  renderTable "${processesReport}" "${PROCESSES_TABLE_TEMPLATE}" \
+  ssr::render_table "${processesReport}" "${PROCESSES_TABLE_TEMPLATE}" \
     "${PROCESSES_TABLE_ROW_HEADER_TEMPLATE}" \
     "${PROCESSES_TABLE_ROW_DATA_TEMPLATE}"
 }

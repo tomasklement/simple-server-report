@@ -43,7 +43,7 @@ _EOF_
 #   None
 # Returns:
 #   Report html
-function logged_users {
+function ssr::logged_users {
   local processesReport
   local linesCount
 
@@ -51,7 +51,8 @@ function logged_users {
 
   # Check the exit code
   if [[ $? -gt 0 ]]; then
-    printError "Logged users report error: \"who\" command ended with error!"
+    ssr::print_error \
+      "Logged users report error: \"who\" command ended with error!"
     return 1
   fi
 
@@ -66,7 +67,7 @@ function logged_users {
     # No users logged-in - only header line was printed
     printf "${LOGGED_USERS_MESSAGE_TEMPLATE}" "No users are logged-in"
   else
-    renderTable "${loggedUsersReport}" "${LOGGED_USERS_TABLE_TEMPLATE}" \
+    ssr::render_table "${loggedUsersReport}" "${LOGGED_USERS_TABLE_TEMPLATE}" \
       "${LOGGED_USERS_TABLE_ROW_HEADER_TEMPLATE}" \
       "${LOGGED_USERS_TABLE_ROW_DATA_TEMPLATE}"
   fi

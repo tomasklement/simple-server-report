@@ -52,8 +52,8 @@ Lets name our plugin **"example"**. Create script `./report_scripts/example.sh` 
 ```bash
 #!/usr/bin/env bash
 
-# All the logic should be in this function to avoid possible conflicts in variable names with main script. Also the function must have the same name as the plugin.
-function example {
+# All the logic should be in this function to avoid possible conflicts in variable names with main script. Also the function must have the same name as the plugin and should start with "ssr::" prefix.
+function ssr::example {
     local dfReport
 
     dfReport=$( df -h )

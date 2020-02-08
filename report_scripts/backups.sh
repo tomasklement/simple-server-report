@@ -19,7 +19,7 @@ BACKUPS_HEADER_TEMPLATE="${REPORT_HEADER_TEMPLATE}"
 #   None
 # Returns:
 #   Report html
-function backups {
+function ssr::backups {
   local changesCount
   local rsyncResult
   local text
@@ -27,14 +27,14 @@ function backups {
   if [[ ! -d "${BACKUPS_DATA_DIRECTORY}" ]]; then
     text="Backups report error: Source directory ${BACKUPS_DATA_DIRECTORY} "
     text+="doesn't exist"
-    printError "${text}"
+    ssr::print_error "${text}"
     return 1
   fi
 
   if [[ ! -d "${BACKUPS_BACKUP_DIRECTORY}" ]]; then
     text="Backups report error: Destination directory "
     text+="${BACKUPS_BACKUP_DIRECTORY} doesn't exist"
-    printError "${text}"
+    ssr::print_error "${text}"
     return 1
   fi
 
@@ -45,7 +45,7 @@ function backups {
 
   # Check the exit code of default command
   if [[ $? -gt 0 ]]; then
-    printError "Backups report error: rsync command ended with error!"
+    ssr::print_error "Backups report error: rsync command ended with error!"
     return 1
   fi
 
