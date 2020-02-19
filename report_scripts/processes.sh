@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+#
+# Processes report function. Prints running processes with highest cpu
+# utilization
 
 # count of most demanding processes displayed in the list
 PROCESSES_COUNT="5"
@@ -41,8 +44,9 @@ _EOF_
 #   Report html
 function ssr::processes {
   local processes_report
-  local count=$((PROCESSES_COUNT+1)) # First line is header
+  local count
 
+  count=$((PROCESSES_COUNT+1)) # First line is header
   processes_report=$( ps -e -o user,%cpu,%mem,comm --sort -%cpu 2> /dev/null )
 
   # Check if command fails on unsupported params and fallback to less

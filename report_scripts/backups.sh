@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# Backups report function. Prints count of differences between two directories
 
 # Source backup directory  - with slash at the end!
 BACKUPS_DATA_DIRECTORY="./test/one/"
@@ -24,16 +26,20 @@ function ssr::backups {
   local rsync_result
   local text
 
+  ssr::validate_config "BACKUPS_DATA_DIRECTORY" "BACKUPS_BACKUP_DIRECTORY"\
+    "BACKUPS_TEMPLATE" "BACKUPS_HEADER_TEMPLATE"
+
   if [[ ! -d "${BACKUPS_DATA_DIRECTORY}" ]]; then
-    text="Backups report error: Source directory ${BACKUPS_DATA_DIRECTORY} "
-    text+="doesn't exist"
+    text="Backups report error: Source directory \"${BACKUPS_DATA_DIRECTORY}\" "
+    text+="defined in configuration value BACKUPS_DATA_DIRECTORY doesn't exist"
     ssr::print_error "${text}"
     return 1
   fi
 
   if [[ ! -d "${BACKUPS_BACKUP_DIRECTORY}" ]]; then
     text="Backups report error: Destination directory "
-    text+="${BACKUPS_BACKUP_DIRECTORY} doesn't exist"
+    text+="\"${BACKUPS_BACKUP_DIRECTORY}\" defined in configuration value "
+    text+="BACKUPS_BACKUP_DIRECTORY doesn't exist"
     ssr::print_error "${text}"
     return 1
   fi

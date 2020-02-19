@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# Disks report function. Prints table with disks utilization
 
 # Filter displayed disks by this regular expression
 # (empty string = no filtering)
@@ -39,8 +41,11 @@ _EOF_
 function ssr::filter_disks_by_regexp {
   local command_result_lines
   local i
-  local filtered_lines=()
-  local IFS=$'\n'
+  local filtered_lines
+  local IFS
+
+  filtered_lines=()
+  IFS=$'\n'
 
   command_result_lines=( $1 )
 

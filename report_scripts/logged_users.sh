@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# Logged users report function. Prints users currently logged-in
 
 # Report header template (inherited)
 LOGGED_USERS_HEADER_TEMPLATE="${REPORT_HEADER_TEMPLATE}"

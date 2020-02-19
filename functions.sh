@@ -1,6 +1,25 @@
 #!/usr/bin/env bash
+#
+# Functions
 
-# Writes given message to STDERR with additional time info
+function ssr:main {
+  # TODO // move code from main script
+  echo "TODO"
+}
+
+
+# Writes given message to STDERR with additional time info (useful for logs)
+# Globals:
+#   None
+# Arguments:
+#   Error message
+# Returns:
+#   None
+function ssr::print_error_log {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $@" >&2
+}
+
+# Writes given message to STDERR
 # Globals:
 #   None
 # Arguments:
@@ -8,7 +27,34 @@
 # Returns:
 #   None
 function ssr::print_error {
-  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $@" >&2
+  echo "$@" >&2
+}
+
+# Validates if all given configuration variables are defined. Exits when aby
+# missing variables found
+# Globals:
+#   EXIT_CODE_CONFIG_ERROR Exit code for configuration error
+# Arguments:
+#   Names of configuration variables
+# Returns:
+#   Error messages for each missing configuration variable
+function ssr::validate_config {
+  local config_var_name
+  local is_any_missing
+
+  is_any_missing=false
+  for config_var_name in "$@"
+  do
+    if [[ -z "${!config_var_name}" ]]; then
+      is_any_missing=true
+      ssr::print_error \
+        "Missing required configuration variable: ${config_var_name}"
+    fi
+  done
+
+  if [[ "$is_any_missing" = true ]]; then
+    exit $EXIT_CODE_CONFIG_ERROR
+  fi
 }
 
 # Encodes UTF8 text in email header to base64
@@ -32,11 +78,13 @@ function ssr::encode_mail_header_string {
 # Returns:
 #   Length
 function ssr::get_report_width {
-  local IFS=$'\n'
-  local report_lines=( $1 )
+  local IFS
+  local report_lines
   local max_line_length
   local line_ength
 
+  IFS=$'\n'
+  report_lines=( $1 )
   max_line_length=0
   for i in "${!report_lines[@]}"
   do
@@ -88,13 +136,18 @@ function ssr::create_mail_header_content {
 # Returns:
 #   Headers suitable for email body
 function ssr::create_mail_headers {
-  local nl=$'\n'
-  local to=$( ssr::create_mail_header_content "${EMAIL_RECIPIENT}" \
-    "${EMAIL_RECIPIENT_NAME}" )
-  local from=$( ssr::create_mail_header_content "${EMAIL_SENDER}" \
-    "${EMAIL_SENDER_NAME}" )
+  local nl
+  local to
+  local from
   local header
-  local headers="From: ${from}${nl}To: ${to}${nl}"
+  local headers
+
+  nl=$'\n'
+  to=$( ssr::create_mail_header_content "${EMAIL_RECIPIENT}" \
+    "${EMAIL_RECIPIENT_NAME}" )
+  from=$( ssr::create_mail_header_content "${EMAIL_SENDER}" \
+    "${EMAIL_SENDER_NAME}" )
+  headers="From: ${from}${nl}To: ${to}${nl}"
 
   if [[ ! -z "${EMAIL_SUBJECT}" ]]; then
     header=$( ssr::encode_mail_header_string "${EMAIL_SUBJECT}" )
@@ -120,12 +173,12 @@ function ssr::create_mail_headers {
 #   None
 function ssr::validate_configuration {
   if [[ -z "${EMAIL_RECIPIENT}" ]]; then
-    echo "Missing configuration EMAIL_RECIPIENT"
+    echo "Missing configuration EMAIL_RECIPIENT" >&2
 		exit 1
   fi
 
   if [[ -z "${EMAIL_SENDER}" ]]; then
-    echo "Missing configuration EMAIL_SENDER"
+    echo "Missing configuration EMAIL_RECIPIENT" >&2
 		exit 1
   fi
 }
@@ -141,10 +194,15 @@ function ssr::detect_spaces_positions {
   local report_line
   local char_pos
   local line_num
-  local IFS=$'\n'
-  local report_lines=( $1 )
-  local spaces_positions=()
-  local filtered_spaces_positions=()
+  local IFS
+  local report_lines
+  local spaces_positions
+  local filtered_spaces_positions
+
+  IFS=$'\n'
+  report_lines=( $1 )
+  spaces_positions=()
+  filtered_spaces_positions=()
 
   for line_num in "${!report_lines[@]}"
   do
@@ -187,7 +245,9 @@ function ssr::detect_spaces_positions {
 #   True or false
 function ssr::is_number_in_array {
   local value
-  local values=( $(echo "${2}") )
+  local values
+
+  values=( $(echo "${2}") )
 
   for value in "${values[@]}"
   do
@@ -209,9 +269,11 @@ function ssr::is_number_in_array {
 # Returns:
 #   Is in array
 function ssr::is_string_in_array {
-  local needle="${1}"
+  local needle
   local haystack
   local string
+
+  needle="${1}"
 
   shift
 
@@ -237,7 +299,9 @@ function ssr::is_string_in_array {
 # Returns:
 #   Joined string
 function ssr::join_by {
-  local IFS="$1"
+  local IFS
+
+  IFS="$1"
   shift
   echo "$*"
 }
@@ -267,9 +331,13 @@ function ssr::parse_row {
   local char_pos
   local char
   local cell_content
-  local previous="space"
-  local cells=()
-  local spaces_positions=( $(echo "${2}") )
+  local previous
+  local cells
+  local spaces_positions
+
+  previous="space"
+  cells=()
+  spaces_positions=( $(echo "${2}") )
 
   for char_pos in $(seq 1 ${#1})
   do
@@ -314,10 +382,15 @@ function ssr::render_table {
   local row_template
   local row_html
   local placeholders_count
-  local table_html=""
-  local spaces_positions=( $(ssr::detect_spaces_positions "${1}") )
-  local IFS=$'\n'
-  local report_rows=( $1 )
+  local table_html
+  local spaces_positions
+  local IFS
+  local report_rows
+
+  table_html=""
+  spaces_positions=( $(ssr::detect_spaces_positions "${1}") )
+  IFS=$'\n'
+  report_rows=( $1 )
 
   for row_index in "${!report_rows[@]}"
   do
@@ -388,7 +461,9 @@ function ssr::get_output_type_from_script_options {
   local option
   local output_type
   local valid_output_type
-  local valid_output_types=( "html" "eml" "sendmail")
+  local valid_output_types
+
+  valid_output_types=( "html" "eml" "sendmail")
 
   # Case when no options provided - just print help to stderr
   if [[ -z "$@" ]]; then
@@ -401,16 +476,16 @@ function ssr::get_output_type_from_script_options {
     case ${option} in
       o )
         output_type="${OPTARG//=}"
-      ;;
+        ;;
       \? )
         ssr::print_arguments_error "Invalid option: \"$OPTARG\""
         return
-      ;;
+        ;;
       : )
         ssr::print_arguments_error \
           "Invalid option: \"${OPTARG}\" requires an argument (type)"
         return
-      ;;
+        ;;
     esac
   done
 

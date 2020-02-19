@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# Updates report function. Prints count of available updates
 
 # Report header template (inherited)
 UPDATES_HEADER_TEMPLATE="${REPORT_HEADER_TEMPLATE}"

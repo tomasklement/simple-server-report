@@ -42,7 +42,7 @@ EMAIL_SENDER_NAME="My server"
 
 ### Configuration of particular plugin
 
-Some plugins have their own specific configuration. It should be located at the top of particular plugin script. Plugins are located in `./report_scripts` directory . These settings can also be overwritten by `config.sh` in the root directory .
+Some plugins have their own specific configuration. It should be located at the top of particular plugin script. Plugins are located in `./report_scripts` directory . Plugin settings can also be overwritten by `config.sh` in the root directory .
 
 ## Writing own plugin
 

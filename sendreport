@@ -2,12 +2,18 @@
 #
 # Generates (and optionally sends) customizable server report
 
+# Exit code for configuration error
+readonly EXIT_CODE_CONFIG_ERROR=2
+# Exit code for configuration error
+readonly EXIT_CODE_UNKNOWN_ERROR=1
+
 # Change working directory to place where this script is saved (useful when
 # running from CRON)
 cd "$(dirname "$0")"
 
 source functions.sh
 source base_config.sh
+
 
 
 if [[ -f "${CUSTOM_CONFIG_FILE_NAME}" ]]; then
@@ -56,13 +62,13 @@ mail_body=$( printf "${MAIL_BODY_TEMPLATE}" "${mail_headers}" "${mail_html}" )
 case ${output_type} in
   "html" )
     echo -n "${mail_html}"
-  ;;
+    ;;
   "eml" )
     echo -n "${mail_body}"
-  ;;
+    ;;
   "sendmail" )
     echo "${mail_body}" \
       | sendmail "${EMAIL_RECIPIENT}"
     echo "Report sent to ${EMAIL_RECIPIENT}"
-  ;;
+    ;;
 esac
