@@ -15,7 +15,7 @@ function ssr:main {
 #   Error message
 # Returns:
 #   None
-function ssr::print_error_log {
+function ssr::print_log_error {
   echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $@" >&2
 }
 
@@ -23,11 +23,54 @@ function ssr::print_error_log {
 # Globals:
 #   None
 # Arguments:
-#   Error message
+#   Error message(s)
 # Returns:
-#   None
+#   Error message to STDERR
 function ssr::print_error {
   echo "$@" >&2
+}
+
+# Calls exit with given exit code. Prints given message to STDERR
+# Globals:
+#   None
+# Arguments:
+#   Exit code
+#   Error message(s)
+# Returns:
+#   Error message to STDERR
+function ssr::throw_error {
+  local exit_code="${1}"
+
+  shift
+  ssr::print_error "$@"
+  exit "${exit_code}"
+}
+
+# Decorates error message from particular report with prefix containing error
+# type and report name
+# Globals:
+#   EXIT_CODE_CONFIG_ERROR Exit code for configuration error
+# Arguments:
+#   Report name
+#   Exit code
+#   Error message
+# Returns:
+#   Decorated error message
+function decorate_report_error {
+  local error_name
+  local prefix
+
+  case "${2}" in
+    "${EXIT_CODE_CONFIG_ERROR}" )
+      error_name="Configuration error"
+      ;;
+    * )
+      error_name="Error"
+      ;;
+  esac
+
+  prefix=$( printf "%s in \"%s\": " "${error_name}" "${1}" )
+  echo "${3}" | sed -e "s/^/${prefix}/"
 }
 
 # Validates if all given configuration variables are defined. Exits when aby
@@ -38,7 +81,7 @@ function ssr::print_error {
 #   Names of configuration variables
 # Returns:
 #   Error messages for each missing configuration variable
-function ssr::validate_config {
+function ssr::validate_configuration {
   local config_var_name
   local is_any_missing
 
@@ -48,12 +91,12 @@ function ssr::validate_config {
     if [[ -z "${!config_var_name}" ]]; then
       is_any_missing=true
       ssr::print_error \
-        "Missing required configuration variable: ${config_var_name}"
+        "Missing required configuration variable \"${config_var_name}\""
     fi
   done
 
   if [[ "$is_any_missing" = true ]]; then
-    exit $EXIT_CODE_CONFIG_ERROR
+    exit "${EXIT_CODE_CONFIG_ERROR}"
   fi
 }
 
@@ -161,26 +204,6 @@ function ssr::create_mail_headers {
   fi
 
   echo "${headers}"
-}
-
-# Checks all required configuration is set up. If not, it exits
-# Globals:
-#   EMAIL_RECIPIENT Recipient name
-#   EMAIL_SENDER    Sender email
-# Arguments:
-#   None
-# Returns:
-#   None
-function ssr::validate_configuration {
-  if [[ -z "${EMAIL_RECIPIENT}" ]]; then
-    echo "Missing configuration EMAIL_RECIPIENT" >&2
-		exit 1
-  fi
-
-  if [[ -z "${EMAIL_SENDER}" ]]; then
-    echo "Missing configuration EMAIL_RECIPIENT" >&2
-		exit 1
-  fi
 }
 
 # Detect position of spaces which are common for all lines of multi-line string

@@ -5,26 +5,16 @@ readonly SOME_CONST="heloj"
 
 source functions.sh
 
-
-
-
-function some_func {
-  ssr::validate_config "SOME_CONSTX"
-
-  echo "nice report"
+function child {
+  echo "LV: ${locval}"
 }
 
-output=$( some_func )
-result="$?"
+function parent {
+  local locval
 
-echo "RES: ${result}"
-echo "OUT: ${output}"
+  locval="heee"
 
-if [[ "${result}" -eq 2 ]]; then
-  exit EXIT_CODE_CONFIG_ERROR
-  echo "you should not see this"
-elif [[ "${result}" -eq 0 ]]; then
-  echo "using this out: ${output}"
-else
-  echo "some other error"
-fi
+  child
+}
+
+parent

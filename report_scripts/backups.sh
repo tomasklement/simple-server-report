@@ -20,39 +20,25 @@ BACKUPS_HEADER_TEMPLATE="${REPORT_HEADER_TEMPLATE}"
 # Arguments:
 #   None
 # Returns:
-#   Report html
+#   Report html to STDOUT or error message to STDERR
 function ssr::backups {
   local changes_count
   local rsync_result
+  local rsync_exit_code
   local text
 
-  ssr::validate_config "BACKUPS_DATA_DIRECTORY" "BACKUPS_BACKUP_DIRECTORY"\
-    "BACKUPS_TEMPLATE" "BACKUPS_HEADER_TEMPLATE"
-
-  if [[ ! -d "${BACKUPS_DATA_DIRECTORY}" ]]; then
-    text="Backups report error: Source directory \"${BACKUPS_DATA_DIRECTORY}\" "
-    text+="defined in configuration value BACKUPS_DATA_DIRECTORY doesn't exist"
-    ssr::print_error "${text}"
-    return 1
-  fi
-
-  if [[ ! -d "${BACKUPS_BACKUP_DIRECTORY}" ]]; then
-    text="Backups report error: Destination directory "
-    text+="\"${BACKUPS_BACKUP_DIRECTORY}\" defined in configuration value "
-    text+="BACKUPS_BACKUP_DIRECTORY doesn't exist"
-    ssr::print_error "${text}"
-    return 1
-  fi
+  ssr::backups_validate_configuration
 
   rsync_result=$(
     rsync -anz --delete --out-format="%o:%f" "${BACKUPS_DATA_DIRECTORY}" \
-      "${BACKUPS_BACKUP_DIRECTORY}"
+      "${BACKUPS_BACKUP_DIRECTORY}" 2>&1
   )
 
+  rsync_exit_code="$?"
+
   # Check the exit code of default command
-  if [[ $? -gt 0 ]]; then
-    ssr::print_error "Backups report error: rsync command ended with error!"
-    return 1
+  if [[ "${rsync_exit_code}" -gt 0 ]]; then
+    ssr::throw_error "${rsync_exit_code}" "RSync error: ${rsync_result}"
   fi
 
   # remove leading whitespaces on MacOS
@@ -71,4 +57,37 @@ function ssr::backups {
 
   printf "${BACKUPS_HEADER_TEMPLATE}" "Backups"
   printf "${BACKUPS_TEMPLATE}" "${text}"
+}
+
+# Validates all configured values. Checks existence of direcoties. Calls exit in
+# case error is found
+# Globals:
+#   BACKUPS_DATA_DIRECTORY   Path to directory  with data
+#   BACKUPS_BACKUP_DIRECTORY Path to directory  where backup should be saved
+#   BACKUPS_TEMPLATE         Template for report content
+#   BACKUPS_HEADER_TEMPLATE  Template for report header
+#   EXIT_CODE_CONFIG_ERROR   Exit code for configuration error
+# Arguments:
+#   None
+# Returns:
+#   Error messages to STDERR
+function ssr::backups_validate_configuration {
+  local text
+
+  ssr::validate_configuration "BACKUPS_DATA_DIRECTORY"\
+    "BACKUPS_BACKUP_DIRECTORY" "BACKUPS_TEMPLATE" "BACKUPS_HEADER_TEMPLATE"
+
+  if [[ ! -d "${BACKUPS_DATA_DIRECTORY}" ]]; then
+    text="Source directory \"${BACKUPS_DATA_DIRECTORY}\" defined in "
+    text+="configuration value BACKUPS_DATA_DIRECTORY doesn't exist"
+  fi
+
+  if [[ ! -d "${BACKUPS_BACKUP_DIRECTORY}" ]]; then
+    text="Destination directory \"${BACKUPS_BACKUP_DIRECTORY}\" defined in "
+    text+="configuration value BACKUPS_BACKUP_DIRECTORY doesn't exist"
+  fi
+
+  if [[ ! -z "${text}" ]]; then
+    ssr::throw_error "${EXIT_CODE_CONFIG_ERROR}" "${text}"
+  fi
 }
