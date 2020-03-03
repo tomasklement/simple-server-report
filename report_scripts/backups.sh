@@ -73,19 +73,34 @@ function ssr::backups {
 #   Error messages to STDERR
 function ssr::backups_validate_configuration {
   local text
+  local empty_config_var_names
+  local errors
 
-  ssr::validate_configuration "BACKUPS_DATA_DIRECTORY"\
-    "BACKUPS_BACKUP_DIRECTORY" "BACKUPS_TEMPLATE" "BACKUPS_HEADER_TEMPLATE"
+  empty_config_var_names=( $( ssr::filter_empty_variable_names \
+    "BACKUPS_DATA_DIRECTORY" "BACKUPS_BACKUP_DIRECTORY" "BACKUPS_TEMPLATE" \
+    "BACKUPS_HEADER_TEMPLATE") )
 
-  if [[ ! -d "${BACKUPS_DATA_DIRECTORY}" ]]; then
+  # TODO show missing error
+
+  if ! ssr::is_string_in_array "${BACKUPS_DATA_DIRECTORY}" \
+      "${empty_config_var_names[@]}" && \
+      [[ ! -d "${BACKUPS_DATA_DIRECTORY}" ]] && \
+      [[ ! -r "${BACKUPS_DATA_DIRECTORY}" ]]; then
     text="Source directory \"${BACKUPS_DATA_DIRECTORY}\" defined in "
-    text+="configuration value BACKUPS_DATA_DIRECTORY doesn't exist"
+    text+="configuration variable BACKUPS_DATA_DIRECTORY is not accessible"
+    errors+=( "${text}" )
   fi
 
-  if [[ ! -d "${BACKUPS_BACKUP_DIRECTORY}" ]]; then
+  if ! ssr::is_string_in_array "${BACKUPS_BACKUP_DIRECTORY}" \
+      "${empty_config_var_names[@]}" && \
+      [[ ! -d "${BACKUPS_BACKUP_DIRECTORY}" ]] && \
+      [[ ! -w "${BACKUPS_BACKUP_DIRECTORY}" ]]; then
     text="Destination directory \"${BACKUPS_BACKUP_DIRECTORY}\" defined in "
-    text+="configuration value BACKUPS_BACKUP_DIRECTORY doesn't exist"
+    text+="configuration variable BACKUPS_BACKUP_DIRECTORY is not accessible"
+    errors+=( "${text}" )
   fi
+
+  text=$( ssr::join_by $'\n' "${errors[@]}" )
 
   if [[ ! -z "${text}" ]]; then
     ssr::throw_error "${EXIT_CODE_CONFIG_ERROR}" "${text}"

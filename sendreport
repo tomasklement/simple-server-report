@@ -53,6 +53,7 @@ do
       ;;
     "${EXIT_CODE_CONFIG_ERROR}" )
       errors_content+="Error in \"${REPORTS[$i]}\" report: ${report_content}"
+      errors_content+=$'\n'
       ;;
     * )
       report_content=$( printf "${REPORT_ERROR_TEMPLATE}" "${REPORTS[$i]}" )

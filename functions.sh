@@ -56,7 +56,7 @@ function ssr::throw_error {
 #   Error message
 # Returns:
 #   Decorated error message
-function decorate_report_error {
+function ssr::decorate_report_error {
   local error_name
   local prefix
 
@@ -70,34 +70,55 @@ function decorate_report_error {
   esac
 
   prefix=$( printf "%s in \"%s\": " "${error_name}" "${1}" )
-  echo "${3}" | sed -e "s/^/${prefix}/"
+  echo "${3}" \
+    | sed -e "s/^/${prefix}/"
 }
 
-# Validates if all given configuration variables are defined. Exits when aby
-# missing variables found
+# Uses given template and applies all following arguments to that template
 # Globals:
-#   EXIT_CODE_CONFIG_ERROR Exit code for configuration error
+#   None
 # Arguments:
-#   Names of configuration variables
+#   Template with one "%s"
+#   Strings to be used in template
 # Returns:
-#   Error messages for each missing configuration variable
-function ssr::validate_configuration {
-  local config_var_name
-  local is_any_missing
+#   Templates where %s is replaced by given strings
+function ssr:apply_array_template {
+  local template
+  local item
+  local result
 
-  is_any_missing=false
+  template="${1}"
+  result=()
+
+  shift
+
+  for item in "$@"
+  do
+    printf "${template}" "${item}"
+  done
+}
+
+# Filters given variable names and returns variable names of variables which are
+# empty or not defined
+# Globals:
+#   None
+# Arguments:
+#   Names of variables to be checked
+# Returns:
+#   Names of variables which are empty or not defined
+function ssr::filter_empty_variable_names {
+  local config_var_name
+  local missing_items
+
+  missing_items=()
   for config_var_name in "$@"
   do
     if [[ -z "${!config_var_name}" ]]; then
-      is_any_missing=true
-      ssr::print_error \
-        "Missing required configuration variable \"${config_var_name}\""
+        missing_items+=( "${config_var_name}" )
     fi
   done
 
-  if [[ "$is_any_missing" = true ]]; then
-    exit "${EXIT_CODE_CONFIG_ERROR}"
-  fi
+  echo "${missing_items[@]}"
 }
 
 # Encodes UTF8 text in email header to base64
@@ -238,12 +259,12 @@ function ssr::detect_spaces_positions {
       if [[ "${report_line:char_pos-1:1}" == " " ]]; then
         # For first line just save all detected space positions
         if [[ $line_num -eq 0 ]]; then
-          spaces_positions+=($char_pos)
+          spaces_positions+=( $char_pos )
         else
           # For lines no. > 0 save only spaces positions which were also
           # detected in previous lines
           if ssr::is_number_in_array $char_pos "${spaces_positions[*]}"; then
-            filtered_spaces_positions+=($char_pos)
+            filtered_spaces_positions+=( $char_pos )
           fi
         fi
       fi
@@ -317,17 +338,35 @@ function ssr::is_string_in_array {
 # Globals:
 #   None
 # Arguments:
-#   Separator
+#   Separator (one or more chars)
 #   Array of values
 # Returns:
 #   Joined string
 function ssr::join_by {
-  local IFS
+  local separator
+  local item
+  local result
+  local add_separator
 
-  IFS="$1"
+  separator="${1}"
+  result=""
+  add_separator=false
+
   shift
-  echo "$*"
+
+  for item in "$@"
+  do
+    if [[ "${add_separator}" = false ]]; then
+      result="${item}"
+      add_separator=true
+    else
+      result="${result}${separator}${item}"
+    fi
+  done
+
+  echo -n "${result}"
 }
+
 # Get count of substrings in given string
 # Globals:
 #   None

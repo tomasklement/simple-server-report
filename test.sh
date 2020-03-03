@@ -5,16 +5,10 @@ readonly SOME_CONST="heloj"
 
 source functions.sh
 
-function child {
-  echo "LV: ${locval}"
-}
+source report_scripts/backups.sh
 
-function parent {
-  local locval
+BACKUPS_BACKUP_DIRECTORY=""
+BACKUPS_DATA_DIRECTORY=""
 
-  locval="heee"
+ssr::backups_validate_configuration
 
-  child
-}
-
-parent
