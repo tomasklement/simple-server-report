@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+#
+# Generates (and optionally sends) customizable server report
+#
+# code style: https://google.github.io/styleguide/shellguide.html
+
+# Exit code for configuration error
+readonly EXIT_CODE_CONFIG_ERROR=134
+
+# Exit code for unsupported report command error
+readonly EXIT_CODE_UNSUPPORTED_ERROR=135
+
+# Reports directory
+readonly REPORTS_DIRECTORY="reports"
+
+# Name of custom config file
+readonly CUSTOM_CONFIG_FILE_NAME="config.sh"
+
+# Folder where html templates are stored with slash at the end
+readonly TEMPLATES_DIRECTORY="templates/"
+
+# Real width of one letter in preformatted reports in px
+readonly PREFORMATTED_REPORT_LETTER_WIDTH=8
+
+# Change working directory to place where this script is saved (useful when
+# running from CRON)
+cd "$(dirname "$0")"
+
+source functions.sh
+source base_config.sh
+
+if [[ -n "${CUSTOM_CONFIG_FILE_NAME}" ]] && \
+  [[ -f "${CUSTOM_CONFIG_FILE_NAME}" ]]; then
+	source "${CUSTOM_CONFIG_FILE_NAME}"
+fi
+
+ssr::check_required_variables "REPORTS"
+
+# Get output type from script options, perform validation of script options
+output_type=$( ssr::get_output_type_from_script_options "$@" )
+if [[ -z "${output_type}" ]]; then
+  exit 22 # 22 = Invalid argument
+fi
+
+# Text of the report
+reports_content=""
+
+for i in "${!REPORTS[@]}"
+do
+  :
+  report_name="${REPORTS[$i]}"
+  # Load particular report
+  source "${REPORTS_DIRECTORY}/${report_name}.sh"
+
+  # Load custom config again after loading particular report (to enable
+  # overwriting its configuration)
+  if [[ -n "${CUSTOM_CONFIG_FILE_NAME}" ]] && \
+    [[ -f "${CUSTOM_CONFIG_FILE_NAME}" ]]; then
+    source "${CUSTOM_CONFIG_FILE_NAME}"
+  fi
+
+  # Function with the same name as report is called (+ "ssr::" prefix)
+  report_content=$( "ssr::${report_name}" 2>&1 )
+
+  report_exit_code="$?"
+
+  if [[ "${report_exit_code}" -gt 0 ]]; then
+    ssr::throw_error "${report_exit_code}" "Error in report \"${report_name}\": ${report_content}"
+  else
+    reports_content="${reports_content}${report_content}"
+  fi
+done
+
+mail_headers=$( ssr::create_mail_headers 2>&1 )
+mail_headers_exit_code="$?"
+
+if [[ "${mail_headers_exit_code}" -gt 0 ]]; then
+  ssr::throw_error "${mail_headers_exit_code}" "${mail_headers}"
+fi
+
+ssr::check_required_variables "MAIN_TEMPLATE"
+mail_html=$( printf "${MAIN_TEMPLATE}" "${reports_content}" )
+
+if [[ "${output_type}" == "html" ]]; then
+  echo -n "${mail_html}"
+  exit 0
+fi
+
+ssr::check_required_variables "MAIL_BODY_TEMPLATE" "EMAIL_RECIPIENT"
+mail_body=$( printf "${MAIL_BODY_TEMPLATE}" "${mail_headers}" "${mail_html}" )
+
+if [[ "${output_type}" == "eml" ]]; then
+  echo -n "${mail_body}"
+  exit 0
+fi
+
+# Send e-mail by sendmail
+echo "${mail_body}" \
+  | sendmail "${EMAIL_RECIPIENT}"
+echo "Report sent to ${EMAIL_RECIPIENT}"

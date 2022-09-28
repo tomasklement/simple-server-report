@@ -1,4 +1,79 @@
 #!/usr/bin/env bash
+#
+# Functions
+
+# Writes given message to STDERR
+# Globals:
+#   None
+# Arguments:
+#   Error message(s)
+# Returns:
+#   Error message to STDERR
+function ssr::print_error {
+  echo "$@" >&2
+}
+
+# Throws configuration error code in case any of given variables are empty
+# empty or not defined
+# Globals:
+#   EXIT_CODE_CONFIG_ERROR Exit code for configuration error
+# Arguments:
+#   Names of variables to be checked
+# Returns:
+#   None
+function ssr::check_required_variables {
+  local variable_names
+
+  variable_names=( $( ssr::filter_empty_variable_names "$@" ) )
+
+  if [[ "${#variable_names[@]}" -eq 0 ]]; then
+    return
+  fi
+
+  variable_names=$( ssr::join_by ", " "${variable_names[@]}" )
+
+  ssr::throw_error "${EXIT_CODE_CONFIG_ERROR}" \
+    "Missing required configuration variables: ${variable_names}"
+}
+
+# Calls exit with given exit code. Prints given message to STDERR
+# Globals:
+#   None
+# Arguments:
+#   Exit code
+#   Error message(s)
+# Returns:
+#   Error message to STDERR
+function ssr::throw_error {
+  local exit_code="${1}"
+
+  shift
+  ssr::print_error "$@"
+  exit "${exit_code}"
+}
+
+# Filters given variable names and returns variable names of variables which are
+# empty or not defined
+# Globals:
+#   None
+# Arguments:
+#   Names of variables to be checked
+# Returns:
+#   Names of variables which are empty or not defined
+function ssr::filter_empty_variable_names {
+  local config_var_name
+  local missing_items
+
+  missing_items=()
+  for config_var_name in "$@"
+  do
+    if [[ -z "${!config_var_name}" ]]; then
+        missing_items+=( "${config_var_name}" )
+    fi
+  done
+
+  echo "${missing_items[@]}"
+}
 
 # Encodes UTF8 text in email header to base64
 # Globals:
@@ -7,8 +82,10 @@
 #   Text to be used in email header
 # Returns:
 #   Encoded text suitable for mail header
-function encodeHeaderText {
-    echo -n "${1}" | base64 | xargs printf "=?UTF-8?B?%s?="
+function ssr::encode_mail_header_string {
+  echo -n "${1}" \
+    | base64 \
+    | xargs printf "=?UTF-8?B?%s?="
 }
 
 # Returns length of longest line (count of characters) in text with new lines
@@ -18,23 +95,30 @@ function encodeHeaderText {
 #   Text to analyze
 # Returns:
 #   Length
-function getReportWidth {
-    local IFS=$'\n'
-    local reportLines=( $1 )
-    local maxLineLength
-    local lineLength
+function ssr::get_report_width {
+  local IFS
+  local report_lines
+  local max_line_length
+  local line_ength
 
-    maxLineLength=0
-    for i in "${!reportLines[@]}"
-    do
-        :
-        lineLength=$( echo "${reportLines[$i]}" | wc -c | sed -e 's/^[[:space:]]*//' )
-        if [ "${lineLength}" -ge "${maxLineLength}" ]; then
-            maxLineLength=$lineLength
-        fi
-    done
+  IFS=$'\n'
+  report_lines=( $1 )
+  max_line_length=0
+  for i in "${!report_lines[@]}"
+  do
+    :
+    line_ength=$(
+      echo "${report_lines[$i]}" \
+        | wc -c \
+        | sed -e 's/^[[:space:]]*//'
+    )
 
-    echo -n "${maxLineLength}"
+    if [[ "${line_ength}" -ge "${max_line_length}" ]]; then
+      max_line_length="${line_ength}"
+    fi
+  done
+
+  echo -n "${max_line_length}"
 }
 
 # Create mail header with users name (optional) and his email
@@ -45,16 +129,15 @@ function getReportWidth {
 #   Users name (optional)
 # Returns:
 #   Header with encoded users name, i.e.: JohnDoe<john@doe.com>
-function createMailHeaderContent {
-    local headerContent
-    local headerText
+function ssr::create_mail_header_content {
+  local header_text
 
-    if [ -z "${2}" ]; then
-        echo -n "${1}"
-    else
-        headerText=$( encodeHeaderText "${2}" )
-        echo  -n "${headerText}<${1}>"
-    fi
+  if [[ -z "${2}" ]]; then
+    echo -n "${1}"
+  else
+    header_text=$( ssr::encode_mail_header_string "${2}" )
+    echo  -n "${header_text}<${1}>"
+  fi
 }
 
 # Create mail headers according to configuration
@@ -70,44 +153,35 @@ function createMailHeaderContent {
 #   None
 # Returns:
 #   Headers suitable for email body
-function createMailHeaders {
-    local nl=$'\n'
-    local to=$( createMailHeaderContent "${EMAIL_RECIPIENT}" "${EMAIL_RECIPIENT_NAME}" )
-    local from=$( createMailHeaderContent "${EMAIL_SENDER}" "${EMAIL_SENDER_NAME}" )
-    local header
-    local headers="From: ${from}${nl}To: ${to}${nl}"
+function ssr::create_mail_headers {
+  local nl
+  local to
+  local from
+  local header
+  local headers
 
-    if [[ ! -z "${EMAIL_SUBJECT}" ]]; then
-        header=$( encodeHeaderText "${EMAIL_SUBJECT}" )
-        headers="${headers}Subject: ${header}${nl}"
-    fi
+  ssr::check_required_variables "EMAIL_RECIPIENT" "EMAIL_RECIPIENT_NAME" \
+    "EMAIL_SENDER" "EMAIL_SENDER_NAME"
 
-    if [[ ! -z "${EMAIL_REPLY_TO}" ]]; then
-        header=$( createMailHeaderContent "${EMAIL_REPLY_TO}" "${EMAIL_REPLY_TO_NAME}" )
-        headers="${headers}Reply-To: ${header}${nl}"
-    fi
+  nl=$'\n'
+  to=$( ssr::create_mail_header_content "${EMAIL_RECIPIENT}" \
+    "${EMAIL_RECIPIENT_NAME}" )
+  from=$( ssr::create_mail_header_content "${EMAIL_SENDER}" \
+    "${EMAIL_SENDER_NAME}" )
+  headers="From: ${from}${nl}To: ${to}${nl}"
 
-    echo "${headers}"
-}
+  if [[ -n "${EMAIL_SUBJECT}" ]]; then
+    header=$( ssr::encode_mail_header_string "${EMAIL_SUBJECT}" )
+    headers="${headers}Subject: ${header}${nl}"
+  fi
 
-# Checks all required configuration is set up. If not, it exits
-# Globals:
-#   EMAIL_RECIPIENT Recipient name
-#   EMAIL_SENDER    Sender email
-# Arguments:
-#   None
-# Returns:
-#   None
-function validateConfiguration {
-    if [ -z "${EMAIL_RECIPIENT}" ]; then
-        echo "Missing configuration EMAIL_RECIPIENT"
-		exit 1
-    fi
+  if [[ -n "${EMAIL_REPLY_TO}" ]]; then
+    header=$( ssr::create_mail_header_content "${EMAIL_REPLY_TO}" \
+      "${EMAIL_REPLY_TO_NAME}" )
+    headers="${headers}Reply-To: ${header}${nl}"
+  fi
 
-    if [ -z "${EMAIL_SENDER}" ]; then
-        echo "Missing configuration EMAIL_SENDER"
-		exit 1
-    fi
+  echo "${headers}"
 }
 
 # Detect position of spaces which are common for all lines of multi-line string
@@ -117,43 +191,49 @@ function validateConfiguration {
 #   Text
 # Returns:
 #   Array of positions (string indexes)
-function detectSpacesPositions {
-    local reportLine
-    local charPos
-    local lineNum
-    local IFS=$'\n'
-    local reportLines=( $1 )
-    local spacesPositions=()
-    local filteredSpacesPositions=()
+function ssr::detect_spaces_positions {
+  local report_line
+  local char_pos
+  local line_num
+  local IFS
+  local report_lines
+  local spaces_positions
+  local filtered_spaces_positions
 
-    for lineNum in "${!reportLines[@]}"
+  IFS=$'\n'
+  report_lines=( $1 )
+  spaces_positions=()
+  filtered_spaces_positions=()
+
+  for line_num in "${!report_lines[@]}"
+  do
+    report_line="${report_lines[$line_num]}"
+    filtered_spaces_positions=()
+
+    # Find spaces positions in current line
+    for char_pos in $(seq 1 ${#report_line})
     do
-        reportLine="${reportLines[$lineNum]}"
-        filteredSpacesPositions=()
-
-        # Find spaces positions in current line
-        for charPos in $(seq 1 ${#reportLine})
-        do
-            if [ "${reportLine:charPos-1:1}" == " " ] ; then
-                # For first line just save all detected space positions
-                if [ $lineNum -eq 0 ] ; then
-                    spacesPositions+=($charPos)
-                else
-                    # For lines no. > 0 save only spaces positions which were also detected in previous lines
-                    if isNumberInArray $charPos "${spacesPositions[*]}"; then
-                        filteredSpacesPositions+=($charPos)
-                    fi
-                fi
-            fi
-        done
-
-        # For lines no. > 0 always save actually filtered array of spaces positions
-        if [ $lineNum -gt 0 ] ; then
-            spacesPositions=( "${filteredSpacesPositions[@]}" )
+      if [[ "${report_line:char_pos-1:1}" == " " ]]; then
+        # For first line just save all detected space positions
+        if [[ $line_num -eq 0 ]]; then
+          spaces_positions+=( $char_pos )
+        else
+          # For lines no. > 0 save only spaces positions which were also
+          # detected in previous lines
+          if ssr::is_number_in_array $char_pos "${spaces_positions[*]}"; then
+            filtered_spaces_positions+=( $char_pos )
+          fi
         fi
+      fi
     done
 
-    echo "${spacesPositions[@]}"
+    # For lines no. > 0 always save actually filtered array of spaces positions
+    if [[ $line_num -gt 0 ]]; then
+      spaces_positions=( "${filtered_spaces_positions[@]}" )
+    fi
+  done
+
+  echo "${spaces_positions[@]}"
 }
 
 # Checks if numeric value is in array
@@ -164,19 +244,21 @@ function detectSpacesPositions {
 #   Array of nubers
 # Returns:
 #   True or false
-function isNumberInArray {
-    local value
-    local values=( `echo "${2}"` )
+function ssr::is_number_in_array {
+  local value
+  local values
 
-    for value in "${values[@]}"
-    do
-        if [ "${1}" -eq "${value}" ]; then
-            true
-            return
-        fi
-    done
+  values=( $(echo "${2}") )
 
-    false
+  for value in "${values[@]}"
+  do
+    if [[ "${1}" -eq "${value}" ]]; then
+      true
+      return
+    fi
+  done
+
+  false
 }
 
 # Checks if given string is in array
@@ -187,39 +269,61 @@ function isNumberInArray {
 #   Array (haystack)
 # Returns:
 #   Is in array
-function isStringInArray {
-    local needle="${1}"
-    local haystack
-    local string
+function ssr::is_string_in_array {
+  local needle
+  local haystack
+  local string
 
-    shift
+  needle="${1}"
 
-    haystack=("$@")
+  shift
 
-    for string in "${haystack[@]}"
-        do
-            if [ "${needle}" == "${string}" ]; then
-                true
-                return
-            fi
-        done
+  haystack=( "$@" )
 
-    false
+  for string in "${haystack[@]}"
+    do
+      if [[ "${needle}" == "${string}" ]]; then
+        true
+        return
+      fi
+    done
+
+  false
 }
 
 # Joins array values to string separated by given separator
 # Globals:
 #   None
 # Arguments:
-#   Separator
+#   Separator (one or more chars)
 #   Array of values
 # Returns:
 #   Joined string
-function joinBy {
-    local IFS="$1"
-    shift
-    echo "$*"
+function ssr::join_by {
+  local separator
+  local item
+  local result
+  local add_separator
+
+  separator="${1}"
+  result=""
+  add_separator=false
+
+  shift
+
+  for item in "$@"
+  do
+    if [[ "${add_separator}" = false ]]; then
+      result="${item}"
+      add_separator=true
+    else
+      result="${result}${separator}${item}"
+    fi
+  done
+
+  echo -n "${result}"
 }
+
 # Get count of substrings in given string
 # Globals:
 #   None
@@ -228,8 +332,10 @@ function joinBy {
 #   Substring (needle)
 # Returns:
 #   Count of occurences
-function getStringsCount {
-    echo "${1}" | tr " " "\n" | grep -c "${2}"
+function ssr::get_strings_count {
+  echo "${1}" \
+    | tr " " "\n" \
+    | grep -c "${2}"
 }
 
 # Splits report row to array of cell values using common spaces positions array
@@ -240,37 +346,41 @@ function getStringsCount {
 #   Array of spaces positions
 # Returns:
 #   Array of cell values
-function parseRow {
-    local charPos
-    local char
-    local cellContent
-    local previous="space"
-    local cells=()
-    local spacesPositions=( `echo "${2}"` )
+function ssr::parse_row {
+  local char_pos
+  local char
+  local cell_content
+  local previous
+  local cells
+  local spaces_positions
 
-    for charPos in $(seq 1 ${#1})
-    do
-        char="${1:charPos-1:1}"
-        if isNumberInArray $charPos "${spacesPositions[*]}"; then
-            if [ "${previous}" == "cell" ]; then
-                cells+=( "${cellContent}" )
-            fi
-            previous="space"
-        else
-            if [ "${previous}" == "space" ]; then
-                cellContent="${char}"
-            else
-                cellContent="${cellContent}${char}"
-            fi
-            previous="cell"
-        fi
-    done
+  previous="space"
+  cells=()
+  spaces_positions=( $(echo "${2}") )
 
-    if [ "${previous}" == "cell" ]; then
-        cells+=( "${cellContent}" )
+  for char_pos in $(seq 1 ${#1})
+  do
+    char="${1:char_pos-1:1}"
+    if ssr::is_number_in_array $char_pos "${spaces_positions[*]}"; then
+      if [[ "${previous}" == "cell" ]]; then
+        cells+=( "${cell_content}" )
+      fi
+      previous="space"
+    else
+      if [[ "${previous}" == "space" ]]; then
+        cell_content="${char}"
+      else
+        cell_content="${cell_content}${char}"
+      fi
+      previous="cell"
     fi
+  done
 
-    joinBy $'\n' "${cells[@]}"
+  if [[ "${previous}" == "cell" ]]; then
+    cells+=( "${cell_content}" )
+  fi
+
+  ssr::join_by $'\n' "${cells[@]}"
 }
 
 # Parses textual report result and renders the data to html table
@@ -279,51 +389,62 @@ function parseRow {
 # Arguments:
 #   Textual report result
 #   Table template with %s placeholder which will be replaced by table rows
-#   Table header row template with %s placeholders which will be replaced by first row cells data
-#   Table data row template with %s placeholders which will be replaced by row cells data
+#   Table header row template with %s placeholders which will be replaced by
+#     first row cells data
+#   Table data row template with %s placeholders which will be replaced by row
+#     cells data
 # Returns:
 #   Report formatted as html table
-function renderTable {
-    local rowCells
-    local rowIndex
-    local rowTemplate
-    local rowHtml
-    local placeholdersCount
-    local tableHtml=""
-    local spacesPositions=( `detectSpacesPositions "${1}"` )
-    local IFS=$'\n'
-    local reportRows=( $1 )
+function ssr::render_table {
+  local row_cells
+  local row_index
+  local row_template
+  local row_html
+  local placeholders_count
+  local table_html
+  local spaces_positions
+  local IFS
+  local report_rows
 
-    for rowIndex in "${!reportRows[@]}"
-    do
-        rowCells=$( parseRow "${reportRows[$rowIndex]}" "${spacesPositions[*]}" )
-        rowCells=( $rowCells )
+  table_html=""
+  spaces_positions=( $(ssr::detect_spaces_positions "${1}") )
+  IFS=$'\n'
+  report_rows=( $1 )
 
-        if [ "${rowIndex}" -eq 0 ]; then
-            rowTemplate="${3}"
-        else
-            rowTemplate="${4}"
-        fi
+  for row_index in "${!report_rows[@]}"
+  do
+    row_cells=$(
+      ssr::parse_row "${report_rows[$row_index]}" "${spaces_positions[*]}"
+    )
+    row_cells=( $row_cells )
 
-        # Slice cells which doesn't fit into template (count of %s placeholders)
-        placeholdersCount=$( getStringsCount "${rowTemplate}" "%s" )
-        rowHtml=$( printf "${rowTemplate}" "${rowCells[@]:0:$placeholdersCount}" )
-        tableHtml="${tableHtml}${rowHtml}"
-    done
+    if [[ "${row_index}" -eq 0 ]]; then
+      row_template="${3}"
+    else
+      row_template="${4}"
+    fi
 
-    printf "${2}" "${tableHtml}"
+    # Slice cells which doesn't fit into template (count of %s placeholders)
+    placeholders_count=$( ssr::get_strings_count "${row_template}" "%s" )
+    row_html=$(
+      printf "${row_template}" "${row_cells[@]:0:$placeholders_count}"
+    )
+    table_html="${table_html}${row_html}"
+  done
+
+  printf "${2}" "${table_html}"
 }
 
-# Prints given text and script common help
+# Prints arguments error message with script common help
 # Globals:
 #   None
 # Arguments:
 #   Text
 # Returns:
 #   Given text with common help text
-function printTextWithHelp {
-    printf "${1} \n\n"
-    printHelp
+function ssr::print_arguments_error {
+  printf "${1} \n\n" >&2
+  ssr::print_arguments_error_help
 }
 
 # Prints script usage help
@@ -333,55 +454,65 @@ function printTextWithHelp {
 #   Text
 # Returns:
 #   Help text
-function printHelp {
-    echo "Usage: -o=<type>"
-    echo "Possible output types:"
-    echo "   eml      Prints report in eml format to stdout"
-    echo "   html     Prints report in html format to stdout"
-    echo "   sendmail Creates report in eml format and sends directly by sendmail (does not print anything to stdout)"
+function ssr::print_arguments_error_help {
+  local text
+
+  text=$'Usage: -o=<type>\n'
+  text+=$'Possible output types:\n'
+  text+=$'   eml      Prints report in eml format to stdout\n'
+  text+=$'   html     Prints report in html format to stdout\n'
+  text+=$'   sendmail Creates report in eml format and sends directly by '
+  text+=$'sendmail (does not print anything to stdout)\n'
+
+  echo "${text}" >&2
 }
 
 # Gets argument of script option "-o"
-# Prints help messages to stderr in case it cannot find the "-o" option or its argument
+# Prints help messages to stderr in case it cannot find the "-o" option or its
+#   argument
 # Globals:
 #   None
 # Arguments:
 #   All script options ($@)
 # Returns:
 #   Output type or empty string in case the output type wasn't found
-function getOutputTypeFromScriptOptions {
-    local option
-    local outputType
-    local validOutputType
-    local validOutputTypes=( "html" "eml" "sendmail")
+function ssr::get_output_type_from_script_options {
+  local option
+  local output_type
+  local valid_output_type
+  local valid_output_types
 
-    # Case when no options provided - just print help to stderr
-    if [ -z "$@" ]; then
-        >&2 printHelp
+  valid_output_types=( "html" "eml" "sendmail")
+
+  # Case when no options provided - just print help to stderr
+  if [[ -z "$@" ]]; then
+    ssr::print_arguments_error_help
+    return
+  fi
+
+  # Check options and try to find -o option
+  while getopts ":o:" option; do
+    case ${option} in
+      o )
+        output_type="${OPTARG//=}"
+        ;;
+      \? )
+        ssr::print_arguments_error "Invalid option: \"$OPTARG\""
         return
-    fi
-
-    # Check options and try to find -o option
-    while getopts ":o:" option; do
-        case ${option} in
-            o )
-                outputType="${OPTARG//=}"
-            ;;
-            \? )
-                >&2 printTextWithHelp "Invalid option: \"$OPTARG\""
-                return
-            ;;
-            : )
-                >&2 printTextWithHelp "Invalid option: \"${OPTARG}\" requires an argument (type)"
-                return
-            ;;
-        esac
-    done
-
-    if ! isStringInArray "${outputType}" "${validOutputTypes[@]}"; then
-        >&2 printTextWithHelp "Invalid option: -o unsupported output type \"${outputType}\""
+        ;;
+      : )
+        ssr::print_arguments_error \
+          "Invalid option: \"${OPTARG}\" requires an argument (type)"
         return
-    fi
+        ;;
+    esac
+  done
 
-    echo "${outputType}"
+  if ! ssr::is_string_in_array "${output_type}" "${valid_output_types[@]}"; then
+    ssr::print_arguments_error \
+      "Invalid option: -o unsupported output type \"${output_type}\""
+    return
+  fi
+
+  echo "${output_type}"
 }
