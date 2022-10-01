@@ -71,13 +71,6 @@ do
   fi
 done
 
-mail_headers=$( ssr::create_mail_headers 2>&1 )
-mail_headers_exit_code="$?"
-
-if [[ "${mail_headers_exit_code}" -gt 0 ]]; then
-  ssr::throw_error "${mail_headers_exit_code}" "${mail_headers}"
-fi
-
 ssr::check_required_variables "MAIN_TEMPLATE"
 mail_html=$( printf "${MAIN_TEMPLATE}" "${reports_content}" )
 
@@ -86,7 +79,15 @@ if [[ "${output_type}" == "html" ]]; then
   exit 0
 fi
 
-ssr::check_required_variables "MAIL_BODY_TEMPLATE" "EMAIL_RECIPIENT"
+mail_headers=$( ssr::create_mail_headers 2>&1 )
+mail_headers_exit_code="$?"
+
+if [[ "${mail_headers_exit_code}" -gt 0 ]]; then
+  ssr::throw_error "${mail_headers_exit_code}" "${mail_headers}"
+fi
+
+
+ssr::check_required_variables "MAIL_BODY_TEMPLATE"
 mail_body=$( printf "${MAIL_BODY_TEMPLATE}" "${mail_headers}" "${mail_html}" )
 
 if [[ "${output_type}" == "eml" ]]; then
@@ -95,6 +96,7 @@ if [[ "${output_type}" == "eml" ]]; then
 fi
 
 # Send e-mail by sendmail
+ssr::check_required_variables "EMAIL_RECIPIENT"
 echo "${mail_body}" \
   | sendmail "${EMAIL_RECIPIENT}"
 echo "Report sent to ${EMAIL_RECIPIENT}"

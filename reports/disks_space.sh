@@ -2,9 +2,9 @@
 #
 # Disks space report function. Prints table with disks utilization
 
-# Filter displayed disks by this regular expression
-# (empty string = no filtering)
-DISKS_SPACE_FILTER_REGEXP="dev"
+# Filter displayed disks by this regular expression. I.e.: "^\/dev\/sd[bc]" will
+# match "/dev/sdb" and "/dev/sdc" disks (empty string = no filtering)
+DISKS_SPACE_FILTER_REGEXP="^\/dev"
 # Report header template (inherited)
 DISKS_SPACE_HEADER_TEMPLATE="${REPORT_HEADER_TEMPLATE}"
 # Report table template (inherited)
