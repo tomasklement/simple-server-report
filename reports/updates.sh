@@ -20,7 +20,7 @@ function ssr::updates {
   local error_text
   local exit_code
 
-  ssr::check_required_variables "UPDATES_HEADER_TEMPLATE" "UPDATES_TEMPLATE"
+  val::check_required_variables "UPDATES_HEADER_TEMPLATE" "UPDATES_TEMPLATE"
 
   command_result=$(
     /usr/lib/update-notifier/apt-check --human-readable 2>&1
@@ -30,7 +30,7 @@ function ssr::updates {
 
   if [[ "${exit_code}" -gt 0 ]]; then
     error_text="Command \"apt-check\" is not supported in current system"
-    ssr::throw_error "${exit_code}" "${command_result}"
+    err::throw "${exit_code}" "${command_result}"
   fi
 
   printf "${UPDATES_HEADER_TEMPLATE}" "Updates"

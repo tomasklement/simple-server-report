@@ -26,6 +26,12 @@ readonly PREFORMATTED_REPORT_LETTER_WIDTH=8
 # running from CRON)
 cd "$(dirname "$0")"
 
+source externals/bashutils/validation
+source externals/bashutils/file
+source externals/bashutils/string
+source externals/bashutils/array
+source externals/bashutils/error
+
 source functions.sh
 source base_config.sh
 
@@ -34,7 +40,7 @@ if [[ -n "${CUSTOM_CONFIG_FILE_NAME}" ]] && \
 	source "${CUSTOM_CONFIG_FILE_NAME}"
 fi
 
-ssr::check_required_variables "REPORTS"
+val::check_required_variables "REPORTS"
 
 # Get output type from script options, perform validation of script options
 output_type=$( ssr::get_output_type_from_script_options "$@" )
@@ -65,13 +71,13 @@ do
   report_exit_code="$?"
 
   if [[ "${report_exit_code}" -gt 0 ]]; then
-    ssr::throw_error "${report_exit_code}" "Error in report \"${report_name}\": ${report_content}"
+    err::throw "${report_exit_code}" "Error in report \"${report_name}\": ${report_content}"
   else
     reports_content="${reports_content}${report_content}"
   fi
 done
 
-ssr::check_required_variables "MAIN_TEMPLATE"
+val::check_required_variables "MAIN_TEMPLATE"
 mail_html=$( printf "${MAIN_TEMPLATE}" "${reports_content}" )
 
 if [[ "${output_type}" == "html" ]]; then
@@ -83,11 +89,11 @@ mail_headers=$( ssr::create_mail_headers 2>&1 )
 mail_headers_exit_code="$?"
 
 if [[ "${mail_headers_exit_code}" -gt 0 ]]; then
-  ssr::throw_error "${mail_headers_exit_code}" "${mail_headers}"
+  err::throw "${mail_headers_exit_code}" "${mail_headers}"
 fi
 
 
-ssr::check_required_variables "MAIL_BODY_TEMPLATE"
+val::check_required_variables "MAIL_BODY_TEMPLATE"
 mail_body=$( printf "${MAIL_BODY_TEMPLATE}" "${mail_headers}" "${mail_html}" )
 
 if [[ "${output_type}" == "eml" ]]; then
@@ -96,7 +102,7 @@ if [[ "${output_type}" == "eml" ]]; then
 fi
 
 # Send e-mail by sendmail
-ssr::check_required_variables "EMAIL_RECIPIENT"
+val::check_required_variables "EMAIL_RECIPIENT"
 echo "${mail_body}" \
   | sendmail "${EMAIL_RECIPIENT}"
 echo "Report sent to ${EMAIL_RECIPIENT}"

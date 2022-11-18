@@ -50,7 +50,7 @@ function ssr::logged_users {
   local lines_count
   local who_exit_code
 
-  ssr::check_required_variables "LOGGED_USERS_HEADER_TEMPLATE" \
+  val::check_required_variables "LOGGED_USERS_HEADER_TEMPLATE" \
     "LOGGED_USERS_MESSAGE_TEMPLATE" "LOGGED_USERS_TABLE_TEMPLATE" \
     "LOGGED_USERS_TABLE_ROW_DATA_TEMPLATE" \
     "LOGGED_USERS_TABLE_ROW_HEADER_TEMPLATE"
@@ -60,7 +60,7 @@ function ssr::logged_users {
   # Check the exit code
   who_exit_code="$?"
   if [[ "${who_exit_code}" -gt 0 ]]; then
-    ssr::throw_error "${who_exit_code}" "${logged_users_report}"
+    err::throw "${who_exit_code}" "${logged_users_report}"
   fi
 
   printf "${LOGGED_USERS_HEADER_TEMPLATE}" "Logged users"

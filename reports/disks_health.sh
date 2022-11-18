@@ -81,13 +81,13 @@ function ssr::disks_health_zero_row_values {
   result_line=$( printf "$1" | grep "${2}" )
 
   if [[ -z "${result_line}" ]]; then
-    ssr::throw_error 22 "Didn't find param \"${2}\""
+    err::throw 22 "Didn't find param \"${2}\""
   fi
 
   value=$( printf "${result_line}" | sed -E "s/.*([0-9]+)$/\1/" )
 
   if ! [[ "$value" =~ ^[0-9]+$ ]]; then
-    ssr::throw_error 22 "Cannot parse value of \"${2}\""
+    err::throw 22 "Cannot parse value of \"${2}\""
   fi
 
   if ! [[ "$value" -gt 0 ]]; then
@@ -100,7 +100,7 @@ function ssr::disks_health_zero_row_values {
 
   row_values=( "${2}" "${value}" "${value_status_color}" "${value_status}" )
 
-  ssr::join_by $'\n' "${row_values[@]}"
+  arr::join $'\n' "${row_values[@]}"
 }
 
 # Parses value from S.M.A.R.T. report which is preceded with given label
@@ -236,7 +236,7 @@ function ssr::disks_health {
   local result
   local IFS
 
-  ssr::check_required_variables "DISKS_HEALTH_DISKS" \
+  val::check_required_variables "DISKS_HEALTH_DISKS" \
     "DISKS_HEALTH_SUBHEADER_TEMPLATE" \
     "DISKS_HEALTH_SMART_TABLE_ROW_HEADER_TEMPLATE" \
     "DISKS_HEALTH_CHECK_ZERO_VALUES" \
@@ -258,7 +258,7 @@ function ssr::disks_health {
     # Error codes greater than 7 means specific problems with disk
     if [[ "${command_exit_code}" -gt 0 ]] && \
         [[ "${command_exit_code}" -lt 8 ]]; then
-      ssr::throw_error "${EXIT_CODE_UNSUPPORTED_ERROR}" \
+      err::throw "${EXIT_CODE_UNSUPPORTED_ERROR}" \
         "Error while running smartctl: ${command_result}"
     fi
 

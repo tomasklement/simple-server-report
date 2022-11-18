@@ -2,79 +2,6 @@
 #
 # Functions
 
-# Writes given message to STDERR
-# Globals:
-#   None
-# Arguments:
-#   Error message(s)
-# Returns:
-#   Error message to STDERR
-function ssr::print_error {
-  echo "$@" >&2
-}
-
-# Throws configuration error code in case any of given variables are empty
-# empty or not defined
-# Globals:
-#   EXIT_CODE_CONFIG_ERROR Exit code for configuration error
-# Arguments:
-#   Names of variables to be checked
-# Returns:
-#   None
-function ssr::check_required_variables {
-  local variable_names
-
-  variable_names=( $( ssr::filter_empty_variable_names "$@" ) )
-
-  if [[ "${#variable_names[@]}" -eq 0 ]]; then
-    return
-  fi
-
-  variable_names=$( ssr::join_by ", " "${variable_names[@]}" )
-
-  ssr::throw_error "${EXIT_CODE_CONFIG_ERROR}" \
-    "Missing required configuration variables: ${variable_names}"
-}
-
-# Calls exit with given exit code. Prints given message to STDERR
-# Globals:
-#   None
-# Arguments:
-#   Exit code
-#   Error message(s)
-# Returns:
-#   Error message to STDERR
-function ssr::throw_error {
-  local exit_code="${1}"
-
-  shift
-  ssr::print_error "$@"
-  exit "${exit_code}"
-}
-
-# Filters given variable names and returns variable names of variables which are
-# empty or not defined
-# Globals:
-#   None
-# Arguments:
-#   Names of variables to be checked
-# Returns:
-#   Names of variables which are empty or not defined
-function ssr::filter_empty_variable_names {
-  local config_var_name
-  local missing_items
-
-  missing_items=()
-  for config_var_name in "$@"
-  do
-    if [[ -z "${!config_var_name}" ]]; then
-        missing_items+=( "${config_var_name}" )
-    fi
-  done
-
-  echo "${missing_items[@]}"
-}
-
 # Encodes UTF8 text in email header to base64
 # Globals:
 #   None
@@ -160,7 +87,7 @@ function ssr::create_mail_headers {
   local header
   local headers
 
-  ssr::check_required_variables "EMAIL_RECIPIENT" "EMAIL_RECIPIENT_NAME" \
+  val::check_required_variables "EMAIL_RECIPIENT" "EMAIL_RECIPIENT_NAME" \
     "EMAIL_SENDER" "EMAIL_SENDER_NAME"
 
   nl=$'\n'
@@ -220,7 +147,7 @@ function ssr::detect_spaces_positions {
         else
           # For lines no. > 0 save only spaces positions which were also
           # detected in previous lines
-          if ssr::is_number_in_array $char_pos "${spaces_positions[*]}"; then
+          if arr::contains_number $char_pos "${spaces_positions[*]}"; then
             filtered_spaces_positions+=( $char_pos )
           fi
         fi
@@ -234,108 +161,6 @@ function ssr::detect_spaces_positions {
   done
 
   echo "${spaces_positions[@]}"
-}
-
-# Checks if numeric value is in array
-# Globals:
-#   None
-# Arguments:
-#   Number
-#   Array of nubers
-# Returns:
-#   True or false
-function ssr::is_number_in_array {
-  local value
-  local values
-
-  values=( $(echo "${2}") )
-
-  for value in "${values[@]}"
-  do
-    if [[ "${1}" -eq "${value}" ]]; then
-      true
-      return
-    fi
-  done
-
-  false
-}
-
-# Checks if given string is in array
-# Globals:
-#   None
-# Arguments:
-#   String (needle)
-#   Array (haystack)
-# Returns:
-#   Is in array
-function ssr::is_string_in_array {
-  local needle
-  local haystack
-  local string
-
-  needle="${1}"
-
-  shift
-
-  haystack=( "$@" )
-
-  for string in "${haystack[@]}"
-    do
-      if [[ "${needle}" == "${string}" ]]; then
-        true
-        return
-      fi
-    done
-
-  false
-}
-
-# Joins array values to string separated by given separator
-# Globals:
-#   None
-# Arguments:
-#   Separator (one or more chars)
-#   Array of values
-# Returns:
-#   Joined string
-function ssr::join_by {
-  local separator
-  local item
-  local result
-  local add_separator
-
-  separator="${1}"
-  result=""
-  add_separator=false
-
-  shift
-
-  for item in "$@"
-  do
-    if [[ "${add_separator}" = false ]]; then
-      result="${item}"
-      add_separator=true
-    else
-      result="${result}${separator}${item}"
-    fi
-  done
-
-  echo -n "${result}"
-}
-
-# Get count of substrings in given string
-# Globals:
-#   None
-# Arguments:
-#   String (haystack)
-#   Substring (needle)
-# Returns:
-#   Count of occurences
-function ssr::get_strings_count {
-  echo "${1}" \
-    | tr " " "\n" \
-    | grep -c "${2}"
 }
 
 # Splits report row to array of cell values using common spaces positions array
@@ -361,7 +186,7 @@ function ssr::parse_row {
   for char_pos in $(seq 1 ${#1})
   do
     char="${1:char_pos-1:1}"
-    if ssr::is_number_in_array $char_pos "${spaces_positions[*]}"; then
+    if arr::contains_number $char_pos "${spaces_positions[*]}"; then
       if [[ "${previous}" == "cell" ]]; then
         cells+=( "${cell_content}" )
       fi
@@ -380,7 +205,7 @@ function ssr::parse_row {
     cells+=( "${cell_content}" )
   fi
 
-  ssr::join_by $'\n' "${cells[@]}"
+  arr::join $'\n' "${cells[@]}"
 }
 
 # Parses textual report result and renders the data to html table
@@ -425,7 +250,7 @@ function ssr::render_table {
     fi
 
     # Slice cells which doesn't fit into template (count of %s placeholders)
-    placeholders_count=$( ssr::get_strings_count "${row_template}" "%s" )
+    placeholders_count=$( str::occurences_count "${row_template}" "%s" )
     row_html=$(
       printf "${row_template}" "${row_cells[@]:0:$placeholders_count}"
     )
@@ -443,7 +268,7 @@ function ssr::render_table {
 # Returns:
 #   Given text with common help text
 function ssr::print_arguments_error {
-  printf "${1} \n\n" >&2
+  err::print "${1} \n"
   ssr::print_arguments_error_help
 }
 
@@ -508,7 +333,7 @@ function ssr::get_output_type_from_script_options {
     esac
   done
 
-  if ! ssr::is_string_in_array "${output_type}" "${valid_output_types[@]}"; then
+  if ! arr::contains_string "${output_type}" "${valid_output_types[@]}"; then
     ssr::print_arguments_error \
       "Invalid option: -o unsupported output type \"${output_type}\""
     return

@@ -64,7 +64,7 @@ function ssr::filter_disks_by_regexp {
     fi
   done
 
-  ssr::join_by $'\n' "${filtered_lines[@]}"
+  arr::join $'\n' "${filtered_lines[@]}"
 }
 
 # Prints disks utilization report
@@ -85,7 +85,7 @@ function ssr::disks_space {
   local command_exit_code
   local error_text
 
-  ssr::check_required_variables "DISKS_SPACE_FILTER_REGEXP" \
+  val::check_required_variables "DISKS_SPACE_FILTER_REGEXP" \
     "DISKS_SPACE_HEADER_TEMPLATE" "DISKS_SPACE_TABLE_TEMPLATE" \
     "DISKS_SPACE_TABLE_ROW_DATA_TEMPLATE" \
     "DISKS_SPACE_TABLE_ROW_HEADER_TEMPLATE"
@@ -101,7 +101,7 @@ function ssr::disks_space {
     # Check the exit code of default command
     if [[ "${command_exit_code}" -gt 0 ]]; then
       error_text="Error while getting disks space: ${command_result}"
-      ssr::throw_error "${command_exit_code}" "${error_text}"
+      err::throw "${command_exit_code}" "${error_text}"
     fi
   fi
 
@@ -113,7 +113,7 @@ function ssr::disks_space {
   lines_count=$( echo "${command_result}" | wc -l )
 
   if [[ "${lines_count}" -le 1 ]]; then
-    ssr::throw_error "${EXIT_CODE_CONFIG_ERROR}" "No disks found"
+    err::throw "${EXIT_CODE_CONFIG_ERROR}" "No disks found"
   fi
 
   printf "${DISKS_SPACE_HEADER_TEMPLATE}" "Disks"

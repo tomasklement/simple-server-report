@@ -1,0 +1,13 @@
+#!/bin/bash
+
+git --version 2>&1 >/dev/null
+
+if [[ "$?" -gt 0 ]]; then
+  echo "Error: latest version of GIT should be installed" >&2
+  exit 1
+fi
+
+git pull --rebase
+git submodule update --recursive --remote
+
+echo "Successfully upgraded"

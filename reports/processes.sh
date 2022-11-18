@@ -47,7 +47,7 @@ function ssr::processes {
   local count
   local ps_exit_code
 
-  ssr::check_required_variables "PROCESSES_COUNT" "PROCESSES_HEADER_TEMPLATE" \
+  val::check_required_variables "PROCESSES_COUNT" "PROCESSES_HEADER_TEMPLATE" \
     "PROCESSES_TABLE_TEMPLATE" "PROCESSES_TABLE_ROW_HEADER_TEMPLATE" \
     "PROCESSES_TABLE_ROW_DATA_TEMPLATE"
 
@@ -62,7 +62,7 @@ function ssr::processes {
     # Check the exit code of default command
     ps_exit_code="$?"
     if [[ "${ps_exit_code}" -gt 0 ]]; then
-      ssr::throw_error "${ps_exit_code}" "${processes_report}"
+      err::throw "${ps_exit_code}" "${processes_report}"
     fi
   fi
 

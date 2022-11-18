@@ -39,7 +39,7 @@ function ssr::sync {
 
   # Check the exit code of default command
   if [[ "${rsync_exit_code}" -gt 0 ]]; then
-    ssr::throw_error "${rsync_exit_code}" "RSync error: ${rsync_result}"
+    err::throw "${rsync_exit_code}" "RSync error: ${rsync_result}"
   fi
 
   # remove leading whitespaces on MacOS
@@ -80,7 +80,7 @@ function ssr::sync_validate_configuration {
   local empty_config_var_names
   local errors
 
-  ssr::check_required_variables "SYNC_SOURCE_DIRECTORY" "SYNC_DEST_DIRECTORY" \
+  val::check_required_variables "SYNC_SOURCE_DIRECTORY" "SYNC_DEST_DIRECTORY" \
     "SYNC_TEMPLATE" "SYNC_HEADER_TEMPLATE"
 
   errors=()
@@ -99,9 +99,9 @@ function ssr::sync_validate_configuration {
     errors+=( "${text}" )
   fi
 
-  text=$( ssr::join_by $'\n' "${errors[@]}" )
+  text=$( arr::join $'\n' "${errors[@]}" )
 
   if [[ -n "${text}" ]]; then
-    ssr::throw_error "${EXIT_CODE_CONFIG_ERROR}" "${text}"
+    err::throw "${EXIT_CODE_CONFIG_ERROR}" "${text}"
   fi
 }

@@ -28,6 +28,20 @@ It can be used to provide very simple server monitoring. Parts of the report are
 ## Email example
 <img src="images/email_screenshot.png" width="401" height="548" alt="Email screenshot" title="Email screenshot">
 
+## Installation
+You need to have installed GIT before running this command. To install run:
+```bash
+git clone https://github.com/tomasklement/simple-server-report.git && git -C simple-server-report submodule update --init --recursive
+```
+This will create directory "simple-server-report" and clone the latest version with its submodules from github.
+
+## Upgrade
+To upgrade to the latest version simply run:
+```bash
+./upgrade
+```
+This will pull the latest version with its submodules from github.
+
 ## Configuration
 
 - Create `config.sh` in the script root directory and place your configuration values to it.
