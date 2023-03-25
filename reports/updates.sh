@@ -23,7 +23,8 @@ function ssr::updates {
   val::check_required_variables "UPDATES_HEADER_TEMPLATE" "UPDATES_TEMPLATE"
 
   command_result=$(
-    /usr/lib/update-notifier/apt-check --human-readable 2>&1
+    /usr/lib/update-notifier/apt-check --human-readable | \
+    grep "updates can be applied" 2>&1
   )
 
   exit_code="$?"

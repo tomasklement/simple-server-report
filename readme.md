@@ -31,6 +31,7 @@ It can be used to provide very simple server monitoring. Parts of the report are
 ## Installation
 You need to have installed GIT before running this command. To install run:
 ```bash
+sudo apt install smartmontools
 git clone https://github.com/tomasklement/simple-server-report.git && git -C simple-server-report submodule update --init --recursive
 ```
 This will create directory "simple-server-report" and clone the latest version with its submodules from github.
