@@ -135,6 +135,7 @@ function ssr::disks_health_get_row_value {
 function ssr::disks_health_smart_values_table {
   local table
   local columns
+  local value
 
   table=$(
     printf "${DISKS_HEALTH_SMART_TABLE_ROW_HEADER_TEMPLATE}" \
@@ -144,9 +145,15 @@ function ssr::disks_health_smart_values_table {
   for i in "${!DISKS_HEALTH_CHECK_ZERO_VALUES[@]}"
   do
     :
+    value="${DISKS_HEALTH_CHECK_ZERO_VALUES[i]}"
+
+    if [[ ! "$command_result" == *"$value"* ]]; then
+      continue
+    fi
+
     columns=(
       $( ssr::disks_health_zero_row_values "${command_result}" \
-          "${DISKS_HEALTH_CHECK_ZERO_VALUES[i]}" )
+          "${value}" )
     )
 
     table+=$(
