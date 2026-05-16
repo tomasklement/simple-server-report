@@ -31,6 +31,7 @@ source externals/bashutils/file
 source externals/bashutils/string
 source externals/bashutils/array
 source externals/bashutils/error
+source externals/bashutils/date
 
 source functions.sh
 source base_config.sh
